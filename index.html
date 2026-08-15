@@ -1313,9 +1313,21 @@ async function syncAuditToSheet(auditId){
   }
 }
 
+function slugify(text){
+  return String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'sf';
+}
+
 async function uploadPhotoToDrive(auditId, file){
   const cfg = await ensureDriveSetup();
-  const metadata = { name: auditId+'_'+Date.now()+'.jpg', parents: [cfg.folderId] };
+  const a = getAudit(auditId);
+  const def = FORM_DEFS[a.type];
+  const label = a.fields.servicio || a.fields.empresa || def.title;
+  const numero = a.fields.numero || 's-n';
+  const fechaSlug = (a.fields.fecha || todayISO());
+  const seq = ((a.photos||[]).length + 1);
+  const fname = def.code+'_'+numero+'_'+slugify(label)+'_'+fechaSlug+'_'+String(seq).padStart(2,'0')+'.jpg';
+  const metadata = { name: fname, parents: [cfg.folderId] };
   const boundary = 'hmhbound'+Date.now();
   const metaPart = '--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+'\r\n';
   const filePartHeader = '--'+boundary+'\r\nContent-Type: '+(file.type||'image/jpeg')+'\r\n\r\n';
