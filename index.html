@@ -23,7 +23,7 @@
 }
 :root{
   --navy:#0D313F; --navy-dark:#081E27; --teal:#5894A7; --teal-bg:#EAF3F5;
-  --gold:#8A6D1E; --gold-bg:#FBF3DC;
+  --gold:#C9971F; --gold-bg:#FBF3DC;
   --ok:#1E7A3D; --ok-bg:#E6F4EA;
   --bad:#B00020; --bad-bg:#FBE4E4;
   --grey:#6B7280; --line:#D9DEE3; --paper:#F5F7F9; --card:#FFFFFF;
@@ -37,6 +37,8 @@ html,body{margin:0; padding:0; background:var(--paper); color:var(--ink); font-f
 
 /* ===== Top bar ===== */
 .topbar{position:sticky; top:0; z-index:20; background:var(--navy); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:10px;}
+.logoband{background:#fff; padding:14px 18px; display:flex; align-items:center; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:21;}
+.logoband img{height:34px; display:block;}
 .topbar .msi{font-size:24px; cursor:pointer; padding:4px;}
 .topbar h1{font-size:16px; margin:0; font-weight:800; flex:1; line-height:1.25;}
 .topbar .sub{font-size:11px; color:#BFD3DA; font-weight:500;}
@@ -307,7 +309,7 @@ trans: {
   title: 'Auditoría al Proceso de Transporte',
   subtitle: 'Transporte Interno — Depósitos, Limpieza y Traslado',
   icon: 'trolley',
-  color: '#8A6D1E',
+  color: '#C9971F',
   intro: 'Aplica a la empresa tercerizada, responsable en TODOS los depósitos —sin excepción— de la limpieza/desinfección y el traslado hasta el depósito final y retiro externo. También realiza el 1.º tramo en los sectores sin operador de limpieza propio.',
   fields: [
     { key: 'fecha', label: 'Fecha', type: 'date' },
@@ -494,6 +496,7 @@ function renderHome(){
   const informes = loadInformes().sort((a,b)=>b.updatedAt-a.updatedAt);
 
   let html = `
+  <div class="logoband"><img src="data:image/png;base64,${LOGO_B64}" alt="Hospital María Humphreys"></div>
   <div class="home-header">
     <div class="brand">${icon('folder_open')} HySL — Higiene y Seguridad Laboral</div>
     <h1>Auditorías de Residuos</h1>
@@ -510,7 +513,7 @@ function renderHome(){
       </div>`;
     }).join('')}
     <div class="type-card" onclick="goInformeNew()">
-      ${icon('fact_check', 'color:#5A4A18')}
+      ${icon('fact_check', 'color:#C9971F')}
       <div class="t">Informe Consolidado</div>
       <div class="s">AUD-RES-002</div>
     </div>
@@ -551,7 +554,7 @@ function renderHome(){
     html += `<div class="section-label">Informes guardados (${informes.length})</div><div class="audit-list">`;
     informes.forEach(inf=>{
       html += `<div class="audit-item" onclick="openInforme('${inf.id}')">
-        <div class="ic" style="background:#8A6D1E">${icon('fact_check')}</div>
+        <div class="ic" style="background:#C9971F">${icon('fact_check')}</div>
         <div class="body">
           <div class="t">Informe ${fmtDate(inf.desde)} — ${fmtDate(inf.hasta)}</div>
           <div class="s">AUD-RES-002 · ${inf.auditIds.length} auditorías incluidas</div>
@@ -565,11 +568,7 @@ function renderHome(){
     <span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer" onclick="resetAllData()">Borrar todos los datos de la app</span>
   </div>`;
 
-  document.getElementById('app').innerHTML = `
-    <div class="topbar">
-      ${icon('folder_open', 'visibility:hidden')}
-      <div style="flex:1"></div>
-    </div>` + html;
+  document.getElementById('app').innerHTML = html;
 }
 
 function startNewAudit(type){
@@ -978,7 +977,7 @@ function renderInforme(){
   s += `<div class="section-label" style="margin:16px 0 6px">4.5 Comparativo Planta vs. Empresa</div>
   <div class="stat-bar">
     <div class="stat"><div class="n" style="color:var(--teal)">${agg.mp.pct===null?'—':agg.mp.pct+'%'}</div><div class="l">M-P Planta</div></div>
-    <div class="stat"><div class="n" style="color:#8A6D1E">${agg.me.pct===null?'—':agg.me.pct+'%'}</div><div class="l">M-E Empresa</div></div>
+    <div class="stat"><div class="n" style="color:#C9971F">${agg.me.pct===null?'—':agg.me.pct+'%'}</div><div class="l">M-E Empresa</div></div>
     <div class="stat"><div class="n" style="color:${diff>0?'var(--ok)':diff<0?'var(--bad)':'var(--grey)'}">${diff===null?'—':(diff>0?'+':'')+diff+'pp'}</div><div class="l">Diferencia</div></div>
   </div>`;
 
