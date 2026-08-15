@@ -322,7 +322,7 @@ trans: {
   subtitle: 'Transporte Interno — Depósitos, Limpieza y Traslado',
   icon: 'trolley',
   color: '#C9971F',
-  intro: 'El proceso auditado en este formulario es específicamente el tramo depósito intermedio → depósito final de residuos del HMH, que realiza únicamente Star Union. Star Union también es responsable exclusiva de la limpieza del depósito intermedio, el depósito final, y el ascensor/circuito utilizado para ese traslado. El 1.º tramo (punto de generación → depósito intermedio) NO se audita acá — se releva siempre en AUD-RES-MUC-001, sea quien sea que lo haga.',
+  intro: 'El proceso auditado en este formulario es específicamente el tramo depósito intermedio → depósito externo de residuos del HMH, que realiza únicamente Star Union. Star Union también es responsable exclusiva de la limpieza del depósito intermedio, el depósito externo, y el ascensor utilizado para el traslado entre Planta Alta y Planta Baja. El 1.º tramo (punto de generación → depósito intermedio) NO se audita acá — se releva siempre en AUD-RES-MUC-001, sea quien sea que lo haga.',
   fields: [
     { key: 'fecha', label: 'Fecha', type: 'date' },
     { key: 'numero', label: 'N.º de auditoría', type: 'text', readonly: true },
@@ -331,42 +331,59 @@ trans: {
     { key: 'auditor', label: 'Auditor/a responsable (HySL)', type: 'text', full: true },
   ],
   depositos: {
-    title: 'Depósitos intermedios — detalle por unidad (Anexo B)',
-    note: 'El "1.º tramo" es solo referencia informativa (quién junta hasta este depósito — auditado en AUD-RES-MUC-001). El resto de esta tabla —ascensor/circuito, limpieza y horario de traslado— es exclusivamente sobre el tramo depósito intermedio → depósito final de residuos del HMH, que realiza y limpia únicamente Star Union, sin excepción.',
-    rows: [
-      { nombre: 'Dep. Cuidados Progresivos', sectores: 'Cuidados Progresivos, Hemoterapia, Guardia, UMU', tramoDefault: 'Mixto — Hemoterapia: empresa directo; resto: operador de limpieza' },
-      { nombre: 'Dep. Cocina', sectores: 'Cocina, Pasillos', tramoDefault: 'Empresa' },
-      { nombre: 'Dep. Diagnóstico por Imágenes', sectores: 'Diag. por imágenes, Pasillo, Consultorios', tramoDefault: 'Empresa' },
-      { nombre: 'Dep. Neonatología', sectores: 'Neonatología', tramoDefault: 'Operador de limpieza' },
-      { nombre: 'Dep. Ginecología', sectores: 'UTPR, Guardia Obstétrica', tramoDefault: 'Operador de limpieza' },
-      { nombre: 'Dep. Quirófano', sectores: 'Quirófano, Esterilización', tramoDefault: 'Empresa' },
-      { nombre: 'Dep. UCIP', sectores: 'UCIP, Pediatría', tramoDefault: 'Operador de limpieza' },
-      { nombre: 'Dep. Confitería', sectores: 'Confitería, Aulas, Administración', tramoDefault: 'Empresa' },
-      { nombre: 'Dep. Laboratorio', sectores: 'Laboratorio', tramoDefault: 'Empresa' },
-      { nombre: 'Dep. UTI', sectores: 'UTI', tramoDefault: 'Operador de limpieza' },
+    title: 'Depósitos intermedios — organizados por planta (Anexo B)',
+    note: 'Los depósitos se presentan agrupados por planta, siguiendo el recorrido físico real: Planta Alta → ascensor (evaluado aparte, en su propia sección) → Planta Baja → depósito externo. El "1.º tramo" es solo referencia informativa (quién junta hasta este depósito — auditado en AUD-RES-MUC-001). Las columnas de limpieza y horario de traslado son exclusivamente sobre el tramo depósito intermedio → depósito externo, a cargo único de Star Union.',
+    grupos: [
+      { planta: 'Planta Alta', rows: [
+        { nombre: 'Dep. Neonatología', sectores: 'Neonatología', tramoDefault: 'Operador de limpieza' },
+        { nombre: 'Dep. Ginecología', sectores: 'UTPR, Guardia Obstétrica', tramoDefault: 'Operador de limpieza' },
+        { nombre: 'Dep. Quirófano', sectores: 'Quirófano, Esterilización', tramoDefault: 'Empresa' },
+        { nombre: 'Dep. UCIP', sectores: 'UCIP, Pediatría', tramoDefault: 'Operador de limpieza' },
+        { nombre: 'Dep. Confitería', sectores: 'Confitería, Aulas, Administración', tramoDefault: 'Empresa' },
+        { nombre: 'Dep. Laboratorio', sectores: 'Laboratorio', tramoDefault: 'Empresa' },
+      ]},
+      { planta: 'Planta Baja', rows: [
+        { nombre: 'Dep. Cuidados Progresivos', sectores: 'Cuidados Progresivos, Hemoterapia, Guardia, UMU', tramoDefault: 'Mixto — Hemoterapia: empresa directo; resto: operador de limpieza' },
+        { nombre: 'Dep. Cocina', sectores: 'Cocina, Pasillos', tramoDefault: 'Empresa' },
+        { nombre: 'Dep. Diagnóstico por Imágenes', sectores: 'Diag. por imágenes, Pasillo, Consultorios', tramoDefault: 'Empresa' },
+        { nombre: 'Dep. UTI', sectores: 'UTI', tramoDefault: 'Operador de limpieza' },
+      ]},
     ],
   },
   sections: [
+    { title: 'Ascensor de traslado (Planta Alta → Planta Baja)', note: 'Se evalúa una sola vez por auditoría: es un tramo único y compartido por todos los depósitos de Planta Alta camino a Planta Baja, no se repite por depósito.', items: [
+      'El ascensor utilizado para el traslado de residuos es de uso exclusivo para ese fin (no comparte viaje con pacientes o público).',
+      'El ascensor se encuentra en condiciones de higiene adecuadas (sin residuos visibles, manchas o derrames).',
+      'La limpieza y desinfección del ascensor se realiza con la frecuencia establecida en el Anexo H.',
+      'El traslado por ascensor se realiza dentro de los horarios establecidos, minimizando el cruce con la circulación general del hospital.',
+    ]},
     { title: 'Carros de transporte interno', items: [
       'Los carros son de uso exclusivo para residuos: material rígido, lavable, impermeable, con tapa ajustada.',
       'Cada carro está rotulado con el color o símbolo de la corriente que transporta.',
       'El estado general de los carros es adecuado (sin roturas, óxido, tapas dañadas).',
       'No se utilizan los carros para ropa, alimentos, medicamentos u objetos ajenos a residuos.',
     ]},
-    { title: 'Rutas y frecuencia de traslado a depósito final', note: 'Verificar contra el Anexo I (circuitos) del manual, para el trayecto depósito intermedio → depósito final.', items: [
-      'El recorrido observado corresponde a las rutas y ascensores señalizados del Anexo I.',
-      'No se utilizan pasillos o ascensores destinados a pacientes o público.',
-      'El traslado a depósito final se realiza dentro de los turnos/horarios establecidos para ese circuito.',
-      'Los biopatogénicos no permanecen acopiados en el depósito intermedio más del tiempo máximo establecido antes de su traslado a depósito final.',
-      'No hay bolsas abiertas, mal cerradas o con exceso de carga durante el traslado a depósito final.',
+    { title: 'Rutas y frecuencia de traslado a depósito externo', note: 'Verificar contra el Anexo I (circuitos) del manual, para el trayecto depósito intermedio → depósito externo.', items: [
+      'El recorrido observado corresponde a las rutas señaladas en el Anexo I.',
+      'No se utilizan pasillos destinados a pacientes o público durante el recorrido.',
+      'El traslado a depósito externo se realiza dentro de los turnos/horarios establecidos para ese circuito.',
+      'Los biopatogénicos no permanecen acopiados en el depósito intermedio más del tiempo máximo establecido antes de su traslado a depósito externo.',
+      'No hay bolsas abiertas, mal cerradas o con exceso de carga durante el traslado a depósito externo.',
     ]},
-    { title: 'Depósitos — condiciones generales', items: [
+    { title: 'Depósitos intermedios — condiciones generales', items: [
       'Cada depósito intermedio recibe únicamente las corrientes asignadas según el Anexo B.',
       'Los depósitos cuentan con ventilación, piso lavable, drenaje y acceso restringido.',
       'Los depósitos están ordenados, señalizados y sin acumulación fuera de los recipientes normalizados.',
-      'No hay acceso de personal no autorizado a los depósitos intermedios ni al depósito final.',
-      'Los biopatogénicos no permanecen más de 48 h acopiados en el depósito final.',
+      'No hay acceso de personal no autorizado a los depósitos intermedios.',
+    ]},
+    { title: 'Depósito externo de residuos — condiciones y evaluación', note: 'Se evalúa como unidad física propia, distinta de los depósitos intermedios: es el punto de acopio final dentro del predio, previo al retiro por el operador de transporte externo habilitado.', items: [
+      'El depósito externo recibe únicamente lo trasladado desde los depósitos intermedios de Planta Baja, tras completar el circuito.',
+      'El depósito externo cuenta con ventilación, piso lavable, drenaje y acceso restringido.',
+      'El depósito externo está ordenado, señalizado y sin acumulación fuera de los recipientes normalizados.',
+      'No hay acceso de personal no autorizado al depósito externo.',
+      'Los biopatogénicos no permanecen más de 48 h acopiados en el depósito externo.',
       'El depósito de RAEE está ventilado, señalizado, con inventario actualizado y sin equipos desarmados.',
+      'El depósito externo cuenta con acceso habilitado para el vehículo de transporte externo, sin interferir con la circulación general del predio.',
     ]},
     { title: 'Limpieza y desinfección', note: 'Según Anexo H del manual.', items: [
       'Los carros de uso diario (biopatogénicos/cortopunzantes) se limpian y desinfectan al finalizar cada recorrido.',
@@ -484,7 +501,7 @@ function newAudit(type){
     confirmed: false, // se pasa a true recién cuando toca "Guardar"
     fields: {}, tipoPersonal: null, items,
     personnel: [],
-    depositos: def.depositos ? def.depositos.rows.map(r=>({nombre:r.nombre, sectores:r.sectores, tramo:r.tramoDefault, circuito:'', limpieza:null, horario:null})) : null,
+    depositos: def.depositos ? def.depositos.grupos.flatMap(g=>g.rows.map(r=>({nombre:r.nombre, sectores:r.sectores, tramo:r.tramoDefault, planta:g.planta, limpieza:null, horario:null}))) : null,
   };
   def.fields.forEach(f=>{
     if(f.key==='fecha') audit.fields[f.key] = todayISO();
@@ -707,11 +724,16 @@ function renderForm(){
     b += `<div class="intro-box" style="font-size:11px"><b>Planta:</b> ${def.refSectoresPlanta}<br><b>Empresa:</b> ${def.refSectoresEmpresa}</div>`;
   }
 
-  // Depositos table (trans only)
+  // Depositos table (trans only) — agrupados por planta, siguiendo el recorrido físico real
   if(def.depositos){
     b += `<div class="section-label" style="margin:18px 0 8px">${def.depositos.title}</div>`;
     b += `<div class="intro-box" style="font-size:11px">${def.depositos.note}</div>`;
+    let currentPlanta = null;
     a.depositos.forEach((dep,di)=>{
+      if(dep.planta !== currentPlanta){
+        currentPlanta = dep.planta;
+        b += `<div style="font-weight:800; font-size:13px; color:var(--navy); margin:14px 0 6px">${currentPlanta}</div>`;
+      }
       b += `<div class="deposito-card">
         <div class="dt">${dep.nombre}</div>
         <div class="ds">${dep.sectores}</div>
@@ -722,23 +744,16 @@ function renderForm(){
           </select>
         </div>
         <div style="margin-top:8px; padding:9px 10px; background:var(--gold-bg); border-left:3px solid var(--gold); border-radius:0 8px 8px 0;">
-          <label style="font-size:9.5px; font-weight:800; color:#5A4A18">A CARGO EXCLUSIVO DE STAR UNION — tramo depósito intermedio → depósito final</label>
+          <label style="font-size:9.5px; font-weight:800; color:#5A4A18">A CARGO EXCLUSIVO DE STAR UNION — tramo depósito intermedio → depósito externo</label>
           <div class="deposito-grid" style="margin-top:6px">
-            <div class="fg"><label>Ascensor / circuito usado</label>
-              <select data-dep="${di}" data-dk="circuito">
-                <option value="" ${!dep.circuito?'selected':''}>—</option>
-                <option ${dep.circuito==='Planta Baja'?'selected':''}>Planta Baja</option>
-                <option ${dep.circuito==='Planta Alta'?'selected':''}>Planta Alta</option>
-              </select>
-            </div>
-            <div class="fg"><label>Limpieza depósito + ascensor</label>
+            <div class="fg"><label>Limpieza depósito</label>
               <select data-dep="${di}" data-dk="limpieza">
                 <option value="" ${dep.limpieza===null?'selected':''}>—</option>
                 <option value="si" ${dep.limpieza==='si'?'selected':''}>Sí</option>
                 <option value="no" ${dep.limpieza==='no'?'selected':''}>No</option>
               </select>
             </div>
-            <div class="fg"><label>Traslado a dep. final cumple horario</label>
+            <div class="fg"><label>Traslado a dep. externo cumple horario</label>
               <select data-dep="${di}" data-dk="horario">
                 <option value="" ${dep.horario===null?'selected':''}>—</option>
                 <option value="si" ${dep.horario==='si'?'selected':''}>Sí</option>
@@ -1162,7 +1177,12 @@ function doPrint(id){
 
   if(def.depositos){
     h += `<div class="p-h2">${def.depositos.title}</div>`;
-    h += pTable(['Depósito','1.º tramo','Circuito','Limpieza','Horario'], a.depositos.map(d=>[d.nombre+' — '+d.sectores, d.tramo, d.circuito||'—', d.limpieza||'—', d.horario||'—']));
+    ['Planta Alta','Planta Baja'].forEach(planta=>{
+      const rows = a.depositos.filter(d=>d.planta===planta);
+      if(!rows.length) return;
+      h += `<div style="font-weight:800; font-size:12px; color:#0D313F; margin:8px 0 4px">${planta}</div>`;
+      h += pTable(['Depósito','1.º tramo','Limpieza','Horario'], rows.map(d=>[d.nombre+' — '+d.sectores, d.tramo, d.limpieza||'—', d.horario||'—']));
+    });
   }
 
   def.sections.forEach((sec,si)=>{
