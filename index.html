@@ -464,7 +464,12 @@ function newAudit(type){
     personnel: [],
     depositos: def.depositos ? def.depositos.rows.map(r=>({nombre:r.nombre, sectores:r.sectores, tramo:r.tramoDefault, circuito:'', limpieza:null, horario:null})) : null,
   };
-  def.fields.forEach(f=> audit.fields[f.key] = f.key==='fecha' ? todayISO() : '');
+  def.fields.forEach(f=>{
+    if(f.key==='fecha') audit.fields[f.key] = todayISO();
+    else if(f.key==='horario') audit.fields[f.key] = new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit', hour12:false});
+    else if(f.key==='auditor') audit.fields[f.key] = 'Lic. Belén Pellegrini — MP LCOHSECH0383';
+    else audit.fields[f.key] = '';
+  });
   audit.fields.numero = nextNumero(type);
   return audit;
 }
@@ -794,13 +799,13 @@ function addPersonnel(id){
   const a = getAudit(id);
   a.personnel.push({ nombre:'', funcion:'', sector:'', tipo:'', capacitado:'' });
   upsertAudit(a);
-  render();
+  rerenderInPlace();
 }
 function removePersonnel(pi){
   const a = getAudit(state.auditId);
   a.personnel.splice(pi,1);
   upsertAudit(a);
-  render();
+  rerenderInPlace();
 }
 
 function toggleSection(si){
@@ -816,7 +821,7 @@ function setItemVal(key, val){
   const a = getAudit(state.auditId);
   a.items[key].v = a.items[key].v===val ? null : val;
   upsertAudit(a);
-  render();
+  rerenderInPlace();
 }
 function setItemObs(key, val){
   const a = getAudit(state.auditId);
@@ -827,7 +832,7 @@ function setTipoPersonal(t){
   const a = getAudit(state.auditId);
   a.tipoPersonal = a.tipoPersonal===t ? null : t;
   upsertAudit(a);
-  render();
+  rerenderInPlace();
 }
 function manualSave(id){
   collectFieldInputs();
@@ -1042,11 +1047,11 @@ function withInforme(fn){
   inf.updatedAt = Date.now();
   saveInformes(list);
 }
-function addHallazgo(){ withInforme(inf=>inf.hallazgos.push({entidad:'G',clasif:'Leve',desc:'',ref:''})); render(); }
-function removeHallazgo(i){ withInforme(inf=>inf.hallazgos.splice(i,1)); render(); }
+function addHallazgo(){ withInforme(inf=>inf.hallazgos.push({entidad:'G',clasif:'Leve',desc:'',ref:''})); rerenderInPlace(); }
+function removeHallazgo(i){ withInforme(inf=>inf.hallazgos.splice(i,1)); rerenderInPlace(); }
 function updHallazgo(i,k,v){ withInforme(inf=>inf.hallazgos[i][k]=v); }
-function addPlan(){ withInforme(inf=>inf.planAccion.push({entidad:'G',accion:'',responsable:'',plazo:'',estado:'Pendiente'})); render(); }
-function removePlan(i){ withInforme(inf=>inf.planAccion.splice(i,1)); render(); }
+function addPlan(){ withInforme(inf=>inf.planAccion.push({entidad:'G',accion:'',responsable:'',plazo:'',estado:'Pendiente'})); rerenderInPlace(); }
+function removePlan(i){ withInforme(inf=>inf.planAccion.splice(i,1)); rerenderInPlace(); }
 function updPlan(i,k,v){ withInforme(inf=>inf.planAccion[i][k]=v); }
 
 function saveInformeFields(){
@@ -1187,13 +1192,21 @@ function doPrintInforme(id){
 }
 
 // ============ MAIN RENDER ROUTER ============
-function render(){
+function render(opts){
+  opts = opts || {};
   if(state.view==='home') renderHome();
   else if(state.view==='form') renderForm();
   else if(state.view==='informe-new') renderInformeNew();
   else if(state.view==='informe') renderInforme();
-  window.scrollTo(0,0);
+  if(!opts.preserveScroll) window.scrollTo(0,0);
   bindAutoSave();
+}
+
+// Re-render without losing the user's scroll position (for in-place taps: checklist pills, add/remove rows, etc.)
+function rerenderInPlace(){
+  const y = window.scrollY;
+  render({ preserveScroll: true });
+  window.scrollTo(0, y);
 }
 
 function bindAutoSave(){
@@ -1305,7 +1318,7 @@ async function syncAuditToSheet(auditId){
     a.lastSync = Date.now();
     upsertAudit(a);
     toast('Sincronizado con Drive ✓');
-    render();
+    rerenderInPlace();
   } catch(e){
     console.error(e);
     toast('No se pudo sincronizar. Revisá tu conexión.');
@@ -1362,7 +1375,7 @@ async function handlePhotoInput(auditId, inputEl){
     a.photos.push({ id: result.id, url: result.webViewLink, ts: Date.now() });
     upsertAudit(a);
     toast('Foto subida a Drive ✓');
-    render();
+    rerenderInPlace();
   } catch(e){
     console.error(e);
     toast('Error al subir la foto. Probá de nuevo.');
@@ -1375,7 +1388,7 @@ function removePhoto(auditId, idx){
   const a = getAudit(auditId);
   a.photos.splice(idx,1);
   upsertAudit(a);
-  render();
+  rerenderInPlace();
 }
 
 function openSheetDashboard(){
