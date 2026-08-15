@@ -203,7 +203,7 @@ window.__ICON_MAP__ = {"home":"\ue9b2","add_circle":"\ue990","edit":"\uf097","de
 </script>
 <script>
 // ============ DATA MODEL — Auditorías de Gestión de Residuos HMH ============
-// Espeja exactamente los formularios AUD-RES-GEN-001, AUD-RES-MUC-001, AUD-RES-TRANS-001, AUD-RES-002
+// Espeja exactamente los formularios AUD-RES-GEN-001, AUD-RES-OPL-001, AUD-RES-TRANS-001, AUD-RES-002
 
 const FORM_DEFS = {
 
@@ -264,9 +264,9 @@ gen: {
   firmas: ['Auditor/a (HySL)', 'Responsable del servicio asistencial auditado'],
 },
 
-muc: {
-  code: 'AUD-RES-MUC-001',
-  title: 'Auditoría a Operadores de Limpieza',
+opl: {
+  code: 'AUD-RES-OPL-001',
+  title: 'Auditoría a Operarios de Limpieza',
   subtitle: 'Recolección de Residuos en el Punto de Generación',
   icon: 'cleaning_services',
   color: '#5894A7',
@@ -281,13 +281,13 @@ muc: {
   ],
   sections: [
     { title: 'Retiro y cierre de bolsas en el sector', items: [
-      'El operador de limpieza verifica que las bolsas estén correctamente cerradas (nudo, precinto) antes de retirarlas.',
+      'El operario de limpieza verifica que las bolsas estén correctamente cerradas (nudo, precinto) antes de retirarlas.',
       'No se reabren ni trasvasan bolsas para corregir errores de segregación detectados en el retiro.',
       'Las bolsas retiradas no superan 3/4 de su capacidad (80% en biopatogénicos).',
       'Se retiran por separado las distintas corrientes, sin mezclarlas durante el traslado.',
     ]},
-    { title: 'Limpieza de contenedores primarios', note: 'Responsabilidad del operador de limpieza en el sector — distinta de la limpieza de depósitos, que es exclusiva de la empresa tercerizada (ver AUD-RES-TRANS-001).', items: [
-      'El operador de limpieza limpia y desinfecta el contenedor primario del sector al menos una vez por turno.',
+    { title: 'Limpieza de contenedores primarios', note: 'Responsabilidad del operario de limpieza en el sector — distinta de la limpieza de depósitos, que es exclusiva de la empresa tercerizada (ver AUD-RES-TRANS-001).', items: [
+      'El operario de limpieza limpia y desinfecta el contenedor primario del sector al menos una vez por turno.',
       'La limpieza sigue el procedimiento y producto indicado en el Anexo H del manual.',
       'El contenedor primario no presenta residuos adheridos, manchas ni olores al finalizar la limpieza.',
     ]},
@@ -302,18 +302,18 @@ muc: {
       'Los biopatogénicos no permanecen más de 24 horas acumulados en el sector.',
     ]},
     { title: 'Capacitación del personal', items: [
-      'El operador de limpieza recibió inducción o capacitación en gestión de residuos hospitalarios.',
+      'El operario de limpieza recibió inducción o capacitación en gestión de residuos hospitalarios.',
       'El personal nuevo recibió inducción antes de iniciar tareas de recolección.',
       'Existe registro de asistencia disponible para verificar el índice de capacitación del período.',
     ]},
-    { title: 'EPP del operador de limpieza', note: 'Según Tabla N.º 8 (Capítulo 9.3) — recolección y transporte interno.', items: [
+    { title: 'EPP del operario de limpieza', note: 'Según Tabla N.º 8 (Capítulo 9.3) — recolección y transporte interno.', items: [
       'Utiliza guantes resistentes, uniforme y calzado cerrado como mínimo durante el retiro.',
       'Utiliza protección ocular y mascarilla cuando la tarea o corriente lo requiere.',
       'El EPP está limpio, en buen estado, y se retira/higieniza correctamente al finalizar la tarea.',
     ]},
   ],
   personnel: { tipo: true },
-  firmas: ['Auditor/a (HySL)', 'Responsable de operadores de limpieza / Jefatura (si P) — Empresa tercerizada (si E)'],
+  firmas: ['Auditor/a (HySL)', 'Responsable de operarios de limpieza / Jefatura (si P) — Empresa tercerizada (si E)'],
   refSectoresPlanta: 'UTI · UCIP · Neonatología · UTPR · Ginecología · Guardia · UMU · Cuidados Progresivos',
   refSectoresEmpresa: 'Consultorios, diagnóstico por imágenes, pasillos, administración, morgue, y el resto de los sectores.',
 },
@@ -324,7 +324,7 @@ trans: {
   subtitle: 'Transporte Interno — Depósitos, Limpieza y Traslado',
   icon: 'trolley',
   color: '#C9971F',
-  intro: 'El proceso auditado en este formulario es específicamente el tramo depósito intermedio → depósito externo de residuos del HMH, que realiza únicamente Star Union. Star Union también es responsable exclusiva de la limpieza del depósito intermedio, el depósito externo, y el ascensor utilizado para el traslado entre Planta Alta y Planta Baja. El 1.º tramo (punto de generación → depósito intermedio) NO se audita acá — se releva siempre en AUD-RES-MUC-001, sea quien sea que lo haga.',
+  intro: 'El proceso auditado en este formulario es específicamente el tramo depósito intermedio → depósito externo de residuos del HMH, que realiza únicamente Star Union. Star Union también es responsable exclusiva de la limpieza del depósito intermedio, el depósito externo, y el ascensor utilizado para el traslado entre Planta Alta y Planta Baja. El 1.º tramo (punto de generación → depósito intermedio) NO se audita acá — se releva siempre en AUD-RES-OPL-001, sea quien sea que lo haga.',
   fields: [
     { key: 'fecha', label: 'Fecha', type: 'date' },
     { key: 'numero', label: 'N.º de auditoría', type: 'text', readonly: true },
@@ -334,21 +334,21 @@ trans: {
   ],
   depositos: {
     title: 'Depósitos intermedios — organizados por planta (Anexo B)',
-    note: 'Los depósitos se presentan agrupados por planta, siguiendo el recorrido físico real: Planta Alta → ascensor (evaluado aparte, en su propia sección) → Planta Baja → depósito externo. El "1.º tramo" es solo referencia informativa (quién junta hasta este depósito — auditado en AUD-RES-MUC-001). Las columnas de limpieza y horario de traslado son exclusivamente sobre el tramo depósito intermedio → depósito externo, a cargo único de Star Union.',
+    note: 'Los depósitos se presentan agrupados por planta, siguiendo el recorrido físico real: Planta Alta → ascensor (evaluado aparte, en su propia sección) → Planta Baja → depósito externo. El "1.º tramo" es solo referencia informativa (quién junta hasta este depósito — auditado en AUD-RES-OPL-001). Las columnas de limpieza y horario de traslado son exclusivamente sobre el tramo depósito intermedio → depósito externo, a cargo único de Star Union.',
     grupos: [
       { planta: 'Planta Alta', rows: [
-        { nombre: 'Dep. Neonatología', sectores: 'Neonatología', tramoDefault: 'Operador de limpieza' },
-        { nombre: 'Dep. Ginecología', sectores: 'UTPR, Guardia Obstétrica', tramoDefault: 'Operador de limpieza' },
+        { nombre: 'Dep. Neonatología', sectores: 'Neonatología', tramoDefault: 'Operario de limpieza' },
+        { nombre: 'Dep. Ginecología', sectores: 'UTPR, Guardia Obstétrica', tramoDefault: 'Operario de limpieza' },
         { nombre: 'Dep. Quirófano', sectores: 'Quirófano, Esterilización', tramoDefault: 'Empresa' },
-        { nombre: 'Dep. UCIP', sectores: 'UCIP, Pediatría', tramoDefault: 'Operador de limpieza' },
+        { nombre: 'Dep. UCIP', sectores: 'UCIP, Pediatría', tramoDefault: 'Operario de limpieza' },
         { nombre: 'Dep. Confitería', sectores: 'Confitería, Aulas, Administración', tramoDefault: 'Empresa' },
         { nombre: 'Dep. Laboratorio', sectores: 'Laboratorio', tramoDefault: 'Empresa' },
       ]},
       { planta: 'Planta Baja', rows: [
-        { nombre: 'Dep. Cuidados Progresivos', sectores: 'Cuidados Progresivos, Hemoterapia, Guardia, UMU', tramoDefault: 'Mixto — Hemoterapia: empresa directo; resto: operador de limpieza' },
+        { nombre: 'Dep. Cuidados Progresivos', sectores: 'Cuidados Progresivos, Hemoterapia, Guardia, UMU', tramoDefault: 'Mixto — Hemoterapia: empresa directo; resto: operario de limpieza' },
         { nombre: 'Dep. Cocina', sectores: 'Cocina, Pasillos', tramoDefault: 'Empresa' },
         { nombre: 'Dep. Diagnóstico por Imágenes', sectores: 'Diag. por imágenes, Pasillo, Consultorios', tramoDefault: 'Empresa' },
-        { nombre: 'Dep. UTI', sectores: 'UTI', tramoDefault: 'Operador de limpieza' },
+        { nombre: 'Dep. UTI', sectores: 'UTI', tramoDefault: 'Operario de limpieza' },
       ]},
     ],
   },
@@ -434,8 +434,8 @@ const REFERENCIAS = {
   ],
   entidad: [
     ['G', 'Generador — servicio asistencial (segregación en origen).'],
-    ['M-P', 'Operador de limpieza de planta hospitalaria (1.º tramo, personal propio).'],
-    ['M-E', 'Operador de limpieza de la empresa tercerizada (1.º tramo, personal de la empresa).'],
+    ['OPL-P', 'Operario de limpieza de planta hospitalaria (1.º tramo, personal propio).'],
+    ['OPL-E', 'Operario de limpieza de la empresa tercerizada (1.º tramo, personal de la empresa).'],
     ['T', 'Servicio de transporte y depósitos — empresa tercerizada (Star Union).'],
   ],
   clasificacion: [
@@ -554,7 +554,7 @@ function renderHome(){
   <div class="tealstrip"></div>
   <div class="section-label" style="margin-top:22px">Nueva auditoría</div>
   <div class="type-grid">
-    ${['gen','muc','trans'].map(t=>{
+    ${['gen','opl','trans'].map(t=>{
       const d = FORM_DEFS[t];
       return `<div class="type-card" onclick="startNewAudit('${t}')">
         ${icon(d.icon, 'color:'+d.color)}
@@ -995,7 +995,7 @@ function renderInformeNew(){
     <div><h1>Nuevo Informe</h1><div class="sub">AUD-RES-002</div></div>
   </div>
   <div class="form-body" style="padding-bottom:100px">
-    <div class="intro-box">Elegí el período y las auditorías a incluir. El informe calcula automáticamente los resultados por entidad (G / M-P / M-E / T) a partir de lo cargado en cada auditoría.</div>
+    <div class="intro-box">Elegí el período y las auditorías a incluir. El informe calcula automáticamente los resultados por entidad — G = Generador, OPL-P = Operario de limpieza (planta), OPL-E = Operario de limpieza (empresa), T = Transporte — a partir de lo cargado en cada auditoría.</div>
     <div class="field-grid">
       <div class="field"><label>Desde</label><input type="date" id="infDesde" value="${monthAgo}"></div>
       <div class="field"><label>Hasta</label><input type="date" id="infHasta" value="${today}"></div>
@@ -1058,8 +1058,8 @@ function computeInformeAgg(inf){
   }
   return {
     gen: aggFor('gen'),
-    mp: aggFor('muc', a=>a.tipoPersonal==='P'),
-    me: aggFor('muc', a=>a.tipoPersonal==='E'),
+    mp: aggFor('opl', a=>a.tipoPersonal==='P'),
+    me: aggFor('opl', a=>a.tipoPersonal==='E'),
     trans: aggFor('trans'),
     included,
   };
@@ -1084,7 +1084,7 @@ function renderInforme(){
 
   const b = document.getElementById('infBody');
   let s = '';
-  s += `<div class="intro-box">${agg.included.length} auditorías incluidas · Generador: ${agg.gen.count} · Operador Planta: ${agg.mp.count} · Operador Empresa: ${agg.me.count} · Transporte: ${agg.trans.count}</div>`;
+  s += `<div class="intro-box">${agg.included.length} auditorías incluidas · Generador: ${agg.gen.count} · Operario Planta: ${agg.mp.count} · Operario Empresa: ${agg.me.count} · Transporte: ${agg.trans.count}</div>`;
 
   function aggTable(title, a){
     let h = `<div class="section-label" style="margin:16px 0 6px">${title}</div>`;
@@ -1098,15 +1098,15 @@ function renderInforme(){
     return h;
   }
   s += aggTable('4.1 Generadores', agg.gen);
-  s += aggTable('4.2 Operadores de Limpieza — Planta (M-P)', agg.mp);
-  s += aggTable('4.3 Operadores de Limpieza — Empresa (M-E)', agg.me);
+  s += aggTable('4.2 Operarios de Limpieza — Planta (OPL-P)', agg.mp);
+  s += aggTable('4.3 Operarios de Limpieza — Empresa (OPL-E)', agg.me);
   s += aggTable('4.4 Transporte — Empresa', agg.trans);
 
   const diff = (agg.mp.pct!==null && agg.me.pct!==null) ? (agg.me.pct-agg.mp.pct) : null;
   s += `<div class="section-label" style="margin:16px 0 6px">4.5 Comparativo Planta vs. Empresa</div>
   <div class="stat-bar">
-    <div class="stat"><div class="n" style="color:var(--teal)">${agg.mp.pct===null?'—':agg.mp.pct+'%'}</div><div class="l">M-P Planta</div></div>
-    <div class="stat"><div class="n" style="color:#C9971F">${agg.me.pct===null?'—':agg.me.pct+'%'}</div><div class="l">M-E Empresa</div></div>
+    <div class="stat"><div class="n" style="color:var(--teal)">${agg.mp.pct===null?'—':agg.mp.pct+'%'}</div><div class="l">OPL-P Planta</div></div>
+    <div class="stat"><div class="n" style="color:#C9971F">${agg.me.pct===null?'—':agg.me.pct+'%'}</div><div class="l">OPL-E Empresa</div></div>
     <div class="stat"><div class="n" style="color:${diff>0?'var(--ok)':diff<0?'var(--bad)':'var(--grey)'}">${diff===null?'—':(diff>0?'+':'')+diff+'pp'}</div><div class="l">Diferencia</div></div>
   </div>`;
 
@@ -1135,7 +1135,7 @@ function hallazgoCard(h,i){
   return `<div class="dyn-card">
     <div class="row">
       <select onchange="updHallazgo(${i},'entidad',this.value)">
-        ${['G','M-P','M-E','T'].map(e=>`<option ${h.entidad===e?'selected':''}>${e}</option>`).join('')}
+        ${['G','OPL-P','OPL-E','T'].map(e=>`<option ${h.entidad===e?'selected':''}>${e}</option>`).join('')}
       </select>
       <select onchange="updHallazgo(${i},'clasif',this.value)">
         ${['Leve','Moderada','Grave'].map(c=>`<option ${h.clasif===c?'selected':''}>${c}</option>`).join('')}
@@ -1150,7 +1150,7 @@ function planCard(p,i){
   return `<div class="dyn-card">
     <div class="row">
       <select onchange="updPlan(${i},'entidad',this.value)">
-        ${['G','M-P','M-E','T'].map(e=>`<option ${p.entidad===e?'selected':''}>${e}</option>`).join('')}
+        ${['G','OPL-P','OPL-E','T'].map(e=>`<option ${p.entidad===e?'selected':''}>${e}</option>`).join('')}
       </select>
       <input placeholder="Responsable" value="${escAttr(p.responsable||'')}" onchange="updPlan(${i},'responsable',this.value)">
     </div>
@@ -1290,13 +1290,13 @@ function doPrintInforme(id){
     }).concat([[`<b>SUBTOTAL</b>`, a.tot.ok, a.tot.bad, a.pct===null?'—':a.pct+'%']]));
   }
   aggBlock('4.1 Generadores', agg.gen);
-  aggBlock('4.2 Operadores de Limpieza — Planta (M-P)', agg.mp);
-  aggBlock('4.3 Operadores de Limpieza — Empresa (M-E)', agg.me);
+  aggBlock('4.2 Operarios de Limpieza — Planta (OPL-P)', agg.mp);
+  aggBlock('4.3 Operarios de Limpieza — Empresa (OPL-E)', agg.me);
   aggBlock('4.4 Transporte — Empresa', agg.trans);
 
   const diff = (agg.mp.pct!==null && agg.me.pct!==null) ? (agg.me.pct-agg.mp.pct) : null;
   h += `<div class="p-h2">4.5 Comparativo Planta vs. Empresa</div>`;
-  h += pTable(['Indicador','M-P','M-E','Diferencia'], [['% cumplimiento — operadores de limpieza', agg.mp.pct===null?'—':agg.mp.pct+'%', agg.me.pct===null?'—':agg.me.pct+'%', diff===null?'—':(diff>0?'+':'')+diff+'pp']]);
+  h += pTable(['Indicador','OPL-P (Planta)','OPL-E (Empresa)','Diferencia'], [['% cumplimiento — operarios de limpieza', agg.mp.pct===null?'—':agg.mp.pct+'%', agg.me.pct===null?'—':agg.me.pct+'%', diff===null?'—':(diff>0?'+':'')+diff+'pp']]);
 
   h += `<div class="p-h2">Hallazgos y no conformidades</div>`;
   h += pTable(['Entidad','Descripción','Clasif.','Referencia'], inf.hallazgos.map(x=>[x.entidad,esc(x.desc),x.clasif,esc(x.ref)]));
@@ -1311,7 +1311,7 @@ function doPrintInforme(id){
   let prows = [];
   agg.included.forEach(a=>{
     const def = FORM_DEFS[a.type];
-    const entBase = a.type==='gen' ? 'G' : a.type==='trans' ? 'T' : (a.tipoPersonal==='E'?'M-E':'M-P');
+    const entBase = a.type==='gen' ? 'G' : a.type==='trans' ? 'T' : (a.tipoPersonal==='E'?'OPL-E':'OPL-P');
     (a.personnel||[]).forEach(p=> prows.push([entBase, p.nombre||'—', p.funcion||'—', p.sector||'—', p.capacitado==='si'?'Sí':p.capacitado==='no'?'No':'—']));
   });
   h += pTable(['Entidad','Nombre','Función','Sector','Capacitado'], prows);
