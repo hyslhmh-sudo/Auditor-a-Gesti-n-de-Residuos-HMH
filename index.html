@@ -114,6 +114,8 @@ html,body{margin:0; padding:0; background:var(--paper); color:var(--ink); font-f
 .obs-toggle{font-size:10.5px; color:var(--teal); font-weight:700; margin-top:8px; display:inline-block;}
 .obs-input{margin-top:6px; width:100%; border:1px solid var(--line); border-radius:8px; padding:7px 9px; font-size:12px; font-family:inherit; display:none;}
 .obs-input.show{display:block;}
+.fotos-panel{margin-top:6px; display:none;}
+.fotos-panel.show{display:block;}
 
 .stat-bar{display:flex; gap:8px; padding:14px; background:var(--card); border:1px solid var(--line); border-radius:14px; margin:18px 0;}
 .stat{flex:1; text-align:center;}
@@ -734,7 +736,6 @@ function renderForm(){
         currentPlanta = dep.planta;
         b += `<div style="font-weight:800; font-size:13px; color:var(--navy); margin:14px 0 6px">${currentPlanta}</div>`;
       }
-      const depPhotos = (a.photos||[]).map((p,pi)=>({...p,pi})).filter(p=>p.depIndex===di);
       b += `<div class="deposito-card">
         <div class="dt">${dep.nombre}</div>
         <div class="ds">${dep.sectores}</div>
@@ -763,18 +764,7 @@ function renderForm(){
         </div>
         <div style="margin-top:8px">
           <label style="font-size:9.5px; font-weight:700; color:var(--grey)">FOTOS DE ESTE DEPÓSITO</label>
-          <div style="margin-top:4px; display:flex; flex-direction:column; gap:6px;">
-            ${depPhotos.map(p=>`<div class="firma-box" style="display:flex; align-items:center; gap:10px; justify-content:space-between; padding:7px 9px;">
-              <a href="${p.url}" target="_blank" style="display:flex; align-items:center; gap:8px; color:var(--navy); text-decoration:none; font-size:11.5px; font-weight:700">
-                ${icon('cloud_done', 'color:var(--ok); font-size:16px')} Foto — ${new Date(p.ts).toLocaleString('es-AR')} ${icon('open_in_new','font-size:13px')}
-              </a>
-              <span class="msi" style="font-size:15px; color:var(--bad); cursor:pointer" onclick="removePhoto('${a.id}',${p.pi})">${ICON_MAP.delete}</span>
-            </div>`).join('')}
-            ${a.confirmed ? `<label class="add-row-btn" style="cursor:pointer; padding:7px 9px; font-size:11.5px;">
-              ${icon('photo_camera','font-size:16px')} Tomar / subir foto de este depósito
-              <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoInput('${a.id}', this, ${di})">
-            </label>` : `<div style="font-size:10.5px; color:var(--grey)">Guardá la auditoría (botón "Guardar") para poder subir fotos.</div>`}
-          </div>
+          <div style="margin-top:4px">${renderPhotoMini(a, 'dep:'+di).html}</div>
         </div>
       </div>`;
     });
@@ -797,6 +787,7 @@ function renderForm(){
         ${sec.items.map((it,ii)=>{
           const key2 = si+'_'+ii;
           const cur = a.items[key2];
+          const pm = renderPhotoMini(a, 'item:'+key2);
           return `<div class="check-item">
             <div class="txt">${it}</div>
             <div class="check-pills">
@@ -805,7 +796,9 @@ function renderForm(){
               <div class="pill ${cur.v==='na'?'on-na':''}" onclick="setItemVal('${key2}','na')">N/A</div>
             </div>
             <span class="obs-toggle" onclick="toggleObs('${key2}')">${cur.obs?'Ver/editar observación':'+ Agregar observación'}</span>
+            <span class="obs-toggle" style="margin-left:14px" onclick="toggleFotos('${key2}')">${pm.count?'Fotos ('+pm.count+')':'+ Agregar foto'}</span>
             <textarea class="obs-input ${cur.obs?'show':''}" id="obs-${key2}" placeholder="Observación..." oninput="setItemObs('${key2}', this.value)">${cur.obs||''}</textarea>
+            <div class="fotos-panel ${pm.count?'show':''}" id="fotos-${key2}">${pm.html}</div>
           </div>`;
         }).join('')}
       </div>
@@ -826,7 +819,7 @@ function renderForm(){
   b += `<div class="add-row-btn" onclick="addPersonnel('${a.id}')">${icon('add_circle')} Agregar persona</div>`;
 
   // Photos
-  b += `<div class="section-label" style="margin:18px 0 8px">${def.depositos ? 'Fotos generales (no asociadas a un depósito puntual)' : 'Fotos'} — se suben directo a Drive, no ocupan espacio en el celular</div>`;
+  b += `<div class="section-label" style="margin:18px 0 8px">Fotos generales (no asociadas a un ítem o depósito puntual) — se suben directo a Drive, no ocupan espacio en el celular</div>`;
   b += renderPhotosSection(a);
 
   // Firmas note
@@ -844,7 +837,7 @@ function renderPhotosSection(a){
     html += `<div class="empty-state" style="padding:14px">Guardá la auditoría primero (botón "Guardar") para poder subir fotos.</div>`;
     return html;
   }
-  const generalPhotos = (a.photos||[]).map((p,pi)=>({...p,pi})).filter(p=>p.depIndex==null);
+  const generalPhotos = (a.photos||[]).map((p,pi)=>({...p,pi})).filter(p=>!p.tag);
   generalPhotos.forEach(p=>{
     html += `<div class="firma-box" style="display:flex; align-items:center; gap:10px; justify-content:space-between">
       <a href="${p.url}" target="_blank" style="display:flex; align-items:center; gap:8px; color:var(--navy); text-decoration:none; font-size:12px; font-weight:700">
@@ -854,13 +847,44 @@ function renderPhotosSection(a){
     </div>`;
   });
   if(generalPhotos.length===0){
-    html += `<div class="empty-state" style="padding:14px">Sin fotos generales cargadas todavía. Las fotos de un depósito puntual se cargan en su propia tarjeta, más arriba.</div>`;
+    html += `<div class="empty-state" style="padding:14px">Sin fotos generales cargadas todavía. Las fotos de un ítem o depósito puntual se cargan junto a ese ítem, más arriba.</div>`;
   }
   html += `<label class="add-row-btn" style="cursor:pointer">
     ${icon('photo_camera')} Tomar / subir foto
     <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoInput('${a.id}', this)">
   </label>`;
   return html;
+}
+
+// ---- Fotos por ítem/depósito (etiquetadas con "tag") ----
+// tag: null = general (no asociada a un hallazgo puntual); 'dep:N' = depósito N (solo TRANS); 'item:S_I' = ítem I de la sección S
+function photosForTag(a, tag){
+  return (a.photos||[]).map((p,pi)=>({...p,pi})).filter(p=>(p.tag||null)===tag);
+}
+function renderPhotoMini(a, tag){
+  const photos = photosForTag(a, tag);
+  let html = '';
+  photos.forEach(p=>{
+    html += `<div class="firma-box" style="display:flex; align-items:center; gap:8px; justify-content:space-between; padding:6px 8px; margin-top:4px;">
+      <a href="${p.url}" target="_blank" style="display:flex; align-items:center; gap:6px; color:var(--navy); text-decoration:none; font-size:11px; font-weight:700">
+        ${icon('cloud_done','color:var(--ok); font-size:15px')} ${new Date(p.ts).toLocaleString('es-AR')} ${icon('open_in_new','font-size:12px')}
+      </a>
+      <span class="msi" style="font-size:14px; color:var(--bad); cursor:pointer" onclick="removePhoto('${a.id}',${p.pi})">${ICON_MAP.delete}</span>
+    </div>`;
+  });
+  if(a.confirmed){
+    html += `<label class="add-row-btn" style="cursor:pointer; padding:6px 8px; font-size:11px; margin-top:4px;">
+      ${icon('photo_camera','font-size:14px')} Tomar / subir foto de este ítem
+      <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoInput('${a.id}', this, '${tag}')">
+    </label>`;
+  } else {
+    html += `<div style="font-size:10px; color:var(--grey); margin-top:4px;">Guardá la auditoría para poder subir fotos.</div>`;
+  }
+  return { html, count: photos.length };
+}
+function toggleFotos(key){
+  const el = document.getElementById('fotos-'+key);
+  el.classList.toggle('show');
 }
 
 function renderPersonnelTable(a, def){
@@ -1198,7 +1222,7 @@ function doPrint(id){
       h += `<div style="font-weight:800; font-size:12px; color:#0D313F; margin:8px 0 4px">${planta}</div>`;
       h += pTable(['Depósito','Limpieza','Horario','Observaciones'], rows.map(d=>[d.nombre+' — '+d.sectores, d.limpieza||'—', d.horario||'—', esc(d.obs||'—')]));
       rows.forEach(d=>{
-        const fotos = (a.photos||[]).filter(p=>p.depIndex===d.di);
+        const fotos = (a.photos||[]).filter(p=>p.tag==='dep:'+d.di);
         if(fotos.length){
           h += `<div class="p-meta" style="margin:2px 0 8px"><b>Fotos — ${esc(d.nombre)}:</b> ${fotos.map(p=>`<a href="${p.url}">${new Date(p.ts).toLocaleDateString('es-AR')}</a>`).join(' · ')}</div>`;
         }
@@ -1212,6 +1236,12 @@ function doPrint(id){
       const cur = a.items[si+'_'+ii];
       return [it, valLabel(cur.v), esc(cur.obs||'')];
     }));
+    sec.items.forEach((it,ii)=>{
+      const fotos = (a.photos||[]).filter(p=>p.tag==='item:'+si+'_'+ii);
+      if(fotos.length){
+        h += `<div class="p-meta" style="margin:2px 0 8px"><b>Fotos — ítem ${ii+1} (${esc(sec.title)}):</b> ${fotos.map(p=>`<a href="${p.url}">${new Date(p.ts).toLocaleDateString('es-AR')}</a>`).join(' · ')}</div>`;
+      }
+    });
   });
 
   h += `<div class="p-h2">Resultado global</div>`;
@@ -1226,9 +1256,9 @@ function doPrint(id){
     return row;
   }));
 
-  const generalPhotosForPdf = (a.photos||[]).filter(p=>p.depIndex==null);
+  const generalPhotosForPdf = (a.photos||[]).filter(p=>!p.tag);
   if(generalPhotosForPdf.length>0){
-    h += `<div class="p-h2">${def.depositos ? 'Fotos generales (archivadas en Google Drive)' : 'Fotos (archivadas en Google Drive)'}</div>`;
+    h += `<div class="p-h2">Fotos generales (archivadas en Google Drive)</div>`;
     h += pTable(['Fecha', 'Link'], generalPhotosForPdf.map(p=>[new Date(p.ts).toLocaleString('es-AR'), p.url]));
   }
 
@@ -1479,12 +1509,27 @@ function slugify(text){
     .replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'sf';
 }
 
-async function uploadPhotoToDrive(auditId, file, depIndex){
+// Etiqueta legible (sector/tipo) a partir del tag de la foto, para nombre de archivo y trazabilidad
+function photoLabelFromTag(a, def, tag){
+  if(!tag) return a.fields.servicio || a.fields.empresa || def.title;
+  if(tag.startsWith('dep:')){
+    const di = +tag.slice(4);
+    const dep = a.depositos && a.depositos[di];
+    return dep ? dep.nombre : 'deposito';
+  }
+  if(tag.startsWith('item:')){
+    const [si] = tag.slice(5).split('_').map(Number);
+    const sec = def.sections[si];
+    return sec ? sec.title : 'item';
+  }
+  return a.fields.servicio || a.fields.empresa || def.title;
+}
+
+async function uploadPhotoToDrive(auditId, file, tag){
   const cfg = await ensureDriveSetup();
   const a = getAudit(auditId);
   const def = FORM_DEFS[a.type];
-  const dep = (depIndex!=null && a.depositos) ? a.depositos[depIndex] : null;
-  const label = dep ? dep.nombre : (a.fields.servicio || a.fields.empresa || def.title);
+  const label = photoLabelFromTag(a, def, tag);
   const numero = a.fields.numero || 's-n';
   const fechaSlug = (a.fields.fecha || todayISO());
   const seq = ((a.photos||[]).length + 1);
@@ -1514,7 +1559,7 @@ async function uploadPhotoToDrive(auditId, file, depIndex){
   return json;
 }
 
-async function handlePhotoInput(auditId, inputEl, depIndex){
+async function handlePhotoInput(auditId, inputEl, tag){
   const file = inputEl.files[0];
   if(!file) return;
   const a0 = getAudit(auditId);
@@ -1525,10 +1570,10 @@ async function handlePhotoInput(auditId, inputEl, depIndex){
   }
   toast('Subiendo foto a Drive...');
   try {
-    const result = await uploadPhotoToDrive(auditId, file, depIndex);
+    const result = await uploadPhotoToDrive(auditId, file, tag);
     const a = getAudit(auditId);
     a.photos = a.photos || [];
-    a.photos.push({ id: result.id, url: result.webViewLink, ts: Date.now(), depIndex: depIndex!=null ? depIndex : null });
+    a.photos.push({ id: result.id, url: result.webViewLink, ts: Date.now(), tag: tag || null });
     upsertAudit(a);
     toast('Foto subida a Drive ✓');
     rerenderInPlace();
