@@ -482,7 +482,7 @@ function nextNumero(type){
   return year + '-' + String(counters[key]).padStart(3, '0');
 }
 
-let state = { view:'home', auditId:null, informeId:null };
+let state = { view:'home', auditId:null, informeId:null, tableroData:null, tableroError:null };
 
 // ---------- Toast ----------
 function toast(msg){
@@ -568,7 +568,15 @@ function renderHome(){
       <div class="s">AUD-RES-002</div>
     </div>
   </div>
-  <div class="type-card" style="margin:12px 18px 0; display:flex; align-items:center; gap:10px;" onclick="openSheetDashboard()">
+  <div class="type-card" style="margin:12px 18px 0; display:flex; align-items:center; gap:10px;" onclick="goTablero()">
+    ${icon('done_all', 'color:'+'#0D313F'+';margin-bottom:0')}
+    <div style="flex:1">
+      <div class="t">Indicadores</div>
+      <div class="s">Resumen de cumplimiento, hallazgos y personal — de todos tus dispositivos</div>
+    </div>
+    ${icon('open_in_new', 'color:var(--grey)')}
+  </div>
+  <div class="type-card" style="margin:10px 18px 0; display:flex; align-items:center; gap:10px;" onclick="openSheetDashboard()">
     ${icon('cloud_done', 'color:'+'#1E7A3D'+';margin-bottom:0')}
     <div style="flex:1">
       <div class="t">Ver tablero en Google Sheets</div>
@@ -646,6 +654,187 @@ function startNewAudit(type){
   const a = newAudit(type);
   upsertAudit(a);
   openAudit(a.id);
+}
+function goTablero(){
+  state.view='tablero';
+  state.tableroData = null;
+  state.tableroError = null;
+  render();
+  loadTableroData();
+}
+
+async function loadTableroData(){
+  try{
+    const cfg = await ensureDriveSetup();
+    const ranges = ['Resumen!A2:L','Detalle!A2:I','Personal!A2:I','Depositos!A2:I','Fotos!A2:A']
+      .map(r=>'ranges='+encodeURIComponent(r)).join('&');
+    const res = await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values:batchGet?'+ranges);
+    const [resumen, detalle, personal, depositos, fotos] = res.valueRanges.map(r=>r.values||[]);
+    state.tableroData = computeTableroStatsFromSheet(resumen, detalle, personal, depositos, fotos);
+    state.tableroError = null;
+  } catch(e){
+    console.error(e);
+    state.tableroError = 'No se pudo cargar el tablero desde Drive. Revisá tu conexión y volvé a intentar.';
+  }
+  if(state.view==='tablero') render({preserveScroll:true});
+}
+
+// Calcula los mismos indicadores que la pestaña "Tablero" de Sheets, pero client-side,
+// leyendo las filas ya sincronizadas — así el resultado es igual sin importar desde qué
+// dispositivo (celular, PC laboral, PC de casa) se esté mirando.
+function computeTableroStatsFromSheet(resumen, detalle, personal, depositos, fotos){
+  const num = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
+  const byEntidad = { 'G':[], 'OPL-P':[], 'OPL-E':[], 'T':[] };
+  let countG=0, countOplP=0, countOplE=0, countT=0;
+  let totalCumple=0, totalNoCumple=0, totalNA=0;
+  resumen.forEach(r=>{
+    const entidad = r[2];
+    const pct = num(r[10]);
+    if(byEntidad[entidad] && pct!==null) byEntidad[entidad].push(pct);
+    if(entidad==='G') countG++; else if(entidad==='OPL-P') countOplP++; else if(entidad==='OPL-E') countOplE++; else if(entidad==='T') countT++;
+    totalCumple += num(r[7])||0; totalNoCumple += num(r[8])||0; totalNA += num(r[9])||0;
+  });
+  const avg = arr => arr.length ? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length) : null;
+  const allPct = Object.values(byEntidad).flat();
+
+  const itemCounts = {}, seccionCounts = {};
+  detalle.forEach(r=>{
+    if(r[6]!=='No cumple') return;
+    const seccion = r[4], item = r[5];
+    itemCounts[item] = (itemCounts[item]||0)+1;
+    seccionCounts[seccion] = (seccionCounts[seccion]||0)+1;
+  });
+  const topItems = Object.entries(itemCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const topSecciones = Object.entries(seccionCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  let personalCapacitado=0, personalP=0, personalE=0;
+  personal.forEach(r=>{
+    if(r[7]==='Sí') personalCapacitado++;
+    if(r[3]==='P') personalP++;
+    if(r[3]==='E') personalE++;
+  });
+
+  let depLimpiezaNo=0, depHorarioNo=0;
+  depositos.forEach(r=>{
+    if(r[5]==='No') depLimpiezaNo++;
+    if(r[6]==='No') depHorarioNo++;
+  });
+
+  return {
+    totalAuditorias: resumen.length,
+    countG, countOplP, countOplE, countT,
+    pctGlobal: avg(allPct), pctG: avg(byEntidad['G']), pctOplP: avg(byEntidad['OPL-P']), pctOplE: avg(byEntidad['OPL-E']), pctT: avg(byEntidad['T']),
+    totalCumple, totalNoCumple, totalNA, topItems, topSecciones,
+    personalTotal: personal.length, personalCapacitado, personalP, personalE,
+    depTotal: depositos.length, depLimpiezaNo, depHorarioNo,
+    fotoTotal: fotos.length,
+  };
+}
+
+function renderTablero(){
+  let html = `<div class="topbar"><span class="msi" onclick="goHome()">${ICON_MAP.arrow_back}</span><div class="tt">Indicadores</div></div>`;
+
+  if(state.tableroError){
+    html += `<div class="empty-state" style="padding:24px 18px">${state.tableroError}</div>
+    <div class="type-card" style="margin:12px 18px; display:flex; align-items:center; gap:10px;" onclick="loadTableroData(); rerenderInPlace();">
+      ${icon('sync', 'color:var(--navy);margin-bottom:0')}
+      <div class="t">Reintentar</div>
+    </div>`;
+    document.getElementById('app').innerHTML = html;
+    return;
+  }
+  if(!state.tableroData){
+    html += `<div class="empty-state" style="padding:24px 18px">Cargando desde Google Sheets...</div>`;
+    document.getElementById('app').innerHTML = html;
+    return;
+  }
+
+  const s = state.tableroData;
+  const pctColor = p => p===null ? '#9AA3AD' : p>=90 ? '#1E7A3D' : p>=70 ? '#C9971F' : '#B00020';
+  html += `<div class="intro-box">Datos de la planilla de Drive — el total entre todos tus dispositivos (celular, PC laboral, PC de casa), no solo este (${s.totalAuditorias} auditorías sincronizadas en total).</div>
+
+  <div class="section-label" style="margin-top:18px">Cumplimiento por entidad</div>
+  <div class="stat-bar">
+    <div class="stat pct"><div class="n" style="color:${pctColor(s.pctGlobal)}">${s.pctGlobal===null?'—':s.pctGlobal+'%'}</div><div class="l">Global</div></div>
+    <div class="stat"><div class="n" style="color:${pctColor(s.pctG)}">${s.pctG===null?'—':s.pctG+'%'}</div><div class="l">G</div></div>
+    <div class="stat"><div class="n" style="color:${pctColor(s.pctOplP)}">${s.pctOplP===null?'—':s.pctOplP+'%'}</div><div class="l">OPL-P</div></div>
+    <div class="stat"><div class="n" style="color:${pctColor(s.pctOplE)}">${s.pctOplE===null?'—':s.pctOplE+'%'}</div><div class="l">OPL-E</div></div>
+    <div class="stat"><div class="n" style="color:${pctColor(s.pctT)}">${s.pctT===null?'—':s.pctT+'%'}</div><div class="l">T</div></div>
+  </div>
+  <div class="intro-box" style="font-size:10.5px">G = Generador · OPL-P = Operario de limpieza (planta) · OPL-E = Operario de limpieza (empresa) · T = Transporte</div>
+
+  <div class="section-label" style="margin-top:18px">Auditorías registradas</div>
+  <div class="stat-bar">
+    <div class="stat"><div class="n">${s.countG}</div><div class="l">G</div></div>
+    <div class="stat"><div class="n">${s.countOplP}</div><div class="l">OPL-P</div></div>
+    <div class="stat"><div class="n">${s.countOplE}</div><div class="l">OPL-E</div></div>
+    <div class="stat"><div class="n">${s.countT}</div><div class="l">T</div></div>
+  </div>
+
+  <div class="section-label" style="margin-top:18px">Hallazgos (ítems "No cumple")</div>
+  <div class="stat-bar">
+    <div class="stat ok"><div class="n">${s.totalCumple}</div><div class="l">Cumple</div></div>
+    <div class="stat bad"><div class="n">${s.totalNoCumple}</div><div class="l">No cumple</div></div>
+    <div class="stat na"><div class="n">${s.totalNA}</div><div class="l">N/A</div></div>
+  </div>`;
+
+  if(s.topItems.length){
+    html += `<div class="section-label" style="margin-top:18px">Ítems más recurrentes con "No cumple"</div><div class="audit-list">`;
+    s.topItems.forEach(([it,n])=>{
+      html += `<div class="audit-item" style="cursor:default">
+        <div class="body"><div class="t" style="font-size:12px; -webkit-line-clamp:2;">${it}</div></div>
+        <div class="pct" style="color:var(--bad)">${n}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  if(s.topSecciones.length){
+    html += `<div class="section-label" style="margin-top:18px">Secciones con más hallazgos</div><div class="audit-list">`;
+    s.topSecciones.forEach(([sec,n])=>{
+      html += `<div class="audit-item" style="cursor:default">
+        <div class="body"><div class="t" style="font-size:12px">${sec}</div></div>
+        <div class="pct" style="color:var(--bad)">${n}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="section-label" style="margin-top:18px">Personal relevado</div>
+  <div class="stat-bar">
+    <div class="stat"><div class="n">${s.personalTotal}</div><div class="l">Total</div></div>
+    <div class="stat"><div class="n">${s.personalP}</div><div class="l">Planta</div></div>
+    <div class="stat"><div class="n">${s.personalE}</div><div class="l">Empresa</div></div>
+    <div class="stat pct"><div class="n">${s.personalTotal?Math.round(s.personalCapacitado/s.personalTotal*100)+'%':'—'}</div><div class="l">Capacitado</div></div>
+  </div>`;
+
+  if(s.depTotal>0){
+    html += `<div class="section-label" style="margin-top:18px">Depósitos (AUD-RES-TRANS-001)</div>
+    <div class="stat-bar">
+      <div class="stat"><div class="n">${s.depTotal}</div><div class="l">Evaluados</div></div>
+      <div class="stat bad"><div class="n">${s.depLimpiezaNo}</div><div class="l">Limpieza: No</div></div>
+      <div class="stat bad"><div class="n">${s.depHorarioNo}</div><div class="l">Horario: No</div></div>
+    </div>`;
+  }
+
+  html += `<div class="section-label" style="margin-top:18px">Evidencia fotográfica</div>
+  <div class="stat-bar">
+    <div class="stat pct"><div class="n">${s.fotoTotal}</div><div class="l">Fotos cargadas</div></div>
+  </div>`;
+
+  html += `<div class="type-card" style="margin:18px 18px 8px; display:flex; align-items:center; gap:10px;" onclick="loadTableroData(); rerenderInPlace();">
+    ${icon('sync', 'color:var(--navy);margin-bottom:0')}
+    <div class="t">Actualizar</div>
+  </div>
+  <div class="type-card" style="margin:8px 18px 24px; display:flex; align-items:center; gap:10px;" onclick="openSheetDashboard()">
+    ${icon('cloud_done', 'color:#1E7A3D;margin-bottom:0')}
+    <div style="flex:1">
+      <div class="t">Abrir la planilla completa</div>
+      <div class="s">Para ver el detalle fila por fila</div>
+    </div>
+    ${icon('open_in_new', 'color:var(--grey)')}
+  </div>`;
+
+  document.getElementById('app').innerHTML = html;
 }
 function openAudit(id){ state.view='form'; state.auditId=id; render(); }
 function confirmDeleteAudit(id){
@@ -1340,6 +1529,7 @@ function render(opts){
   else if(state.view==='form') renderForm();
   else if(state.view==='informe-new') renderInformeNew();
   else if(state.view==='informe') renderInforme();
+  else if(state.view==='tablero') renderTablero();
   if(!opts.preserveScroll) window.scrollTo(0,0);
   bindAutoSave();
 }
@@ -1411,9 +1601,127 @@ async function findExistingDriveFile(name, mimeType){
   return (res.files && res.files.length) ? res.files[0] : null;
 }
 
+// Código de entidad (G / OPL-P / OPL-E / T) para cruzar auditorías con el Informe-002
+function entidadFor(a, def){
+  if(a.type==='gen') return 'G';
+  if(a.type==='trans') return 'T';
+  return a.tipoPersonal==='E' ? 'OPL-E' : 'OPL-P';
+}
+
+const SHEET_TABS = {
+  Resumen:   ['N.º Auditoría','Tipo Doc','Entidad','Fecha','Servicio/Empresa','Tipo Personal (P/E)','Auditor','Cumple','No Cumple','N/A','% Cumplimiento','Sincronizado'],
+  Detalle:   ['N.º Auditoría','Tipo Doc','Entidad','Fecha','Sección','Ítem','Resultado','Observación','Sincronizado'],
+  Fotos:     ['N.º Auditoría','Fecha','Sector/Ítem','Archivo','Link Drive'],
+  Personal:  ['N.º Auditoría','Tipo Doc','Fecha','Tipo (P/E)','Nombre y Apellido','Función','Sector','Capacitado','Sincronizado'],
+  Depositos: ['N.º Auditoría','Fecha','Planta','Depósito','Sectores','Limpieza','Horario','Observaciones','Sincronizado'],
+};
+
+let _sheetTabsEnsured = false;
+async function ensureSheetTabs(sheetId){
+  if(_sheetTabsEnsured) return;
+  const meta = await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'?fields=sheets.properties.title');
+  const existing = new Set((meta.sheets||[]).map(s=>s.properties.title));
+  const missing = Object.keys(SHEET_TABS).filter(t=>!existing.has(t));
+  if(missing.length){
+    await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+':batchUpdate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ requests: missing.map(title=>({ addSheet: { properties: { title } } })) }),
+    });
+    for(const title of missing){
+      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/'+encodeURIComponent(title)+'!A1:append?valueInputOption=USER_ENTERED', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ values: [SHEET_TABS[title]] }),
+      });
+    }
+  }
+  // Pestaña "Tablero" con fórmulas — se crea una sola vez; si ya existe no se toca
+  // (por si Belén la personalizó a mano).
+  if(!existing.has('Tablero')){
+    await ensureTableroTab(sheetId);
+  }
+  _sheetTabsEnsured = true;
+}
+
+async function ensureTableroTab(sheetId){
+  const addRes = await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+':batchUpdate', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ requests: [{ addSheet: { properties: { title: 'Tablero', index: 0 } } } ] }),
+  });
+  const tabSheetId = addRes.replies[0].addSheet.properties.sheetId;
+
+  const rows = [
+    ['TABLERO DE CONTROL — AUDITORÍAS DE RESIDUOS HMH', ''],
+    ['Se actualiza solo al sincronizar auditorías desde la app. No editar a mano las celdas con fórmula.', ''],
+    ['', ''],
+    ['RESUMEN GENERAL', ''],
+    ['Total de auditorías registradas', '=COUNTA(Resumen!A2:A)'],
+    ['Auditorías — Generadores (G)', '=COUNTIF(Resumen!C2:C,"G")'],
+    ['Auditorías — Operarios de limpieza, planta (OPL-P)', '=COUNTIF(Resumen!C2:C,"OPL-P")'],
+    ['Auditorías — Operarios de limpieza, empresa (OPL-E)', '=COUNTIF(Resumen!C2:C,"OPL-E")'],
+    ['Auditorías — Transporte (T)', '=COUNTIF(Resumen!C2:C,"T")'],
+    ['', ''],
+    ['% CUMPLIMIENTO', ''],
+    ['% cumplimiento global', '=IFERROR(ROUND(AVERAGE(Resumen!K2:K),1)&"%","—")'],
+    ['% cumplimiento — Generadores (G)', '=IFERROR(ROUND(AVERAGEIF(Resumen!C2:C,"G",Resumen!K2:K),1)&"%","—")'],
+    ['% cumplimiento — Operarios planta (OPL-P)', '=IFERROR(ROUND(AVERAGEIF(Resumen!C2:C,"OPL-P",Resumen!K2:K),1)&"%","—")'],
+    ['% cumplimiento — Operarios empresa (OPL-E)', '=IFERROR(ROUND(AVERAGEIF(Resumen!C2:C,"OPL-E",Resumen!K2:K),1)&"%","—")'],
+    ['% cumplimiento — Transporte (T)', '=IFERROR(ROUND(AVERAGEIF(Resumen!C2:C,"T",Resumen!K2:K),1)&"%","—")'],
+    ['', ''],
+    ['HALLAZGOS (NO CONFORMIDADES)', ''],
+    ['Total de hallazgos registrados', '=SUM(Resumen!I2:I)'],
+    ['Top 10 ítems con más hallazgos', ''],
+    ['=IFERROR(QUERY(Detalle!F2:G,"select F, count(F) where G=\'No cumple\' group by F order by count(F) desc limit 10 label F \'Ítem\', count(F) \'Hallazgos\'"),"Sin datos aún")', ''],
+    ['', ''], ['', ''], ['', ''], ['', ''], ['', ''], ['', ''], ['', ''], ['', ''], ['', ''], ['', ''],
+    ['Top 5 secciones con más hallazgos', ''],
+    ['=IFERROR(QUERY(Detalle!E2:G,"select E, count(E) where G=\'No cumple\' group by E order by count(E) desc limit 5 label E \'Sección\', count(E) \'Hallazgos\'"),"Sin datos aún")', ''],
+    ['', ''], ['', ''], ['', ''], ['', ''], ['', ''],
+    ['PERSONAL', ''],
+    ['Total de personas relevadas', '=COUNTA(Personal!E2:E)'],
+    ['% personal capacitado', '=IFERROR(ROUND(COUNTIF(Personal!H2:H,"Sí")/COUNTA(Personal!E2:E)*100,1)&"%","—")'],
+    ['Personal de planta relevado', '=COUNTIF(Personal!D2:D,"P")'],
+    ['Personal de empresa relevado', '=COUNTIF(Personal!D2:D,"E")'],
+    ['', ''],
+    ['DEPÓSITOS (AUD-RES-TRANS-001)', ''],
+    ['Depósitos evaluados', '=COUNTA(Depositos!D2:D)'],
+    ['Depósitos con limpieza "No cumple"', '=COUNTIF(Depositos!F2:F,"No")'],
+    ['Depósitos con horario de traslado "No cumple"', '=COUNTIF(Depositos!G2:G,"No")'],
+    ['', ''],
+    ['EVIDENCIA FOTOGRÁFICA', ''],
+    ['Total de fotos cargadas', '=COUNTA(Fotos!A2:A)'],
+    ['', ''],
+    ['Referencia: G = Generador · OPL-P = Operario de limpieza (planta) · OPL-E = Operario de limpieza (empresa) · T = Transporte', ''],
+  ];
+
+  await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/Tablero!A1:append?valueInputOption=USER_ENTERED', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ values: rows }),
+  });
+
+  // Formato: título y encabezados de sección en negrita, columna A más ancha
+  const sectionRows = [0,3,10,17,38,44,49];
+  await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+':batchUpdate', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ requests: [
+      { updateDimensionProperties: { range: { sheetId: tabSheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 }, properties: { pixelSize: 420 }, fields: 'pixelSize' } },
+      { updateDimensionProperties: { range: { sheetId: tabSheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 }, properties: { pixelSize: 200 }, fields: 'pixelSize' } },
+      ...sectionRows.map(r => ({
+        repeatCell: {
+          range: { sheetId: tabSheetId, startRowIndex: r, endRowIndex: r+1, startColumnIndex: 0, endColumnIndex: 2 },
+          cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: r===0 ? {red:0.051,green:0.192,blue:0.247} : {red:0.937,green:0.949,blue:0.957}, textColor: r===0 ? {red:1,green:1,blue:1} : undefined } },
+          fields: 'userEnteredFormat(textFormat,backgroundColor)',
+        }
+      })),
+      { updateSheetProperties: { properties: { sheetId: tabSheetId, gridProperties: { frozenRows: 0 } }, fields: 'gridProperties.frozenRows' } },
+    ] }),
+  });
+}
+
 async function ensureDriveSetup(){
   let cfg = getDriveConfig();
-  if(cfg && cfg.folderId && cfg.sheetId) return cfg;
+  if(cfg && cfg.folderId && cfg.sheetId){
+    await ensureSheetTabs(cfg.sheetId);
+    return cfg;
+  }
 
   // Config local perdida (otro dispositivo, caché borrada, reinstalación, etc.):
   // buscamos primero en Drive antes de crear nada, para no generar duplicados.
@@ -1436,35 +1744,26 @@ async function ensureDriveSetup(){
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         properties: { title: 'Auditorías Residuos HMH — Tablero' },
-        sheets: [{ properties: { title: 'Resumen' } }, { properties: { title: 'Detalle' } }, { properties: { title: 'Fotos' } }],
+        sheets: Object.keys(SHEET_TABS).map(title=>({ properties: { title } })),
       }),
     });
     sheetId = newSheet.spreadsheetId;
+    for(const title of Object.keys(SHEET_TABS)){
+      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/'+encodeURIComponent(title)+'!A1:append?valueInputOption=USER_ENTERED', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ values: [SHEET_TABS[title]] }),
+      });
+    }
+    await ensureTableroTab(sheetId);
+    _sheetTabsEnsured = true;
+  } else {
+    // Planilla existente (recién encontrada o ya conocida): aseguramos que tenga todas las pestañas necesarias.
+    await ensureSheetTabs(sheetId);
   }
 
-  if(sheetAlreadyExisted){
-    // La planilla ya existía (y ya tiene sus encabezados) — no reescribir.
-    cfg = { folderId: folder.id, sheetId: sheetId, sheetUrl: 'https://docs.google.com/spreadsheets/d/'+sheetId+'/edit' };
-    saveDriveConfig(cfg);
-    toast('Drive reconectado ✓');
-    return cfg;
-  }
-
-  await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/Resumen!A1:append?valueInputOption=USER_ENTERED', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ values: [['N.º Auditoría','Tipo Doc','Fecha','Servicio/Empresa','Tipo Personal (P/E)','Auditor','Cumple','No Cumple','N/A','% Cumplimiento','Sincronizado']] }),
-  });
-  await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/Detalle!A1:append?valueInputOption=USER_ENTERED', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ values: [['N.º Auditoría','Tipo Doc','Fecha','Sección','Ítem','Resultado','Observación','Sincronizado']] }),
-  });
-  await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/Fotos!A1:append?valueInputOption=USER_ENTERED', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ values: [['N.º Auditoría','Fecha','Archivo','Link Drive']] }),
-  });
   cfg = { folderId: folder.id, sheetId: sheetId, sheetUrl: 'https://docs.google.com/spreadsheets/d/'+sheetId+'/edit' };
   saveDriveConfig(cfg);
-  toast('Drive configurado ✓');
+  toast(sheetAlreadyExisted ? 'Drive reconectado ✓' : 'Drive configurado ✓');
   return cfg;
 }
 
@@ -1480,18 +1779,37 @@ async function syncAuditToSheet(auditId){
     const st = computeStats(a);
     const label = a.fields.servicio || a.fields.empresa || def.title;
     const now = new Date().toLocaleString('es-AR');
-    const row = [a.fields.numero, def.code, fmtDate(a.fields.fecha), label, a.tipoPersonal||'', a.fields.auditor||'', st.ok, st.bad, st.na, st.pct===null?'':st.pct, now];
+    const entidad = entidadFor(a, def);
+    const row = [a.fields.numero, def.code, entidad, fmtDate(a.fields.fecha), label, a.tipoPersonal||'', a.fields.auditor||'', st.ok, st.bad, st.na, st.pct===null?'':st.pct, now];
     await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Resumen!A1:append?valueInputOption=USER_ENTERED', {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values:[row] }),
     });
     const detailRows = [];
     def.sections.forEach((sec,si)=> sec.items.forEach((it,ii)=>{
       const cur = a.items[si+'_'+ii];
-      if(cur.v) detailRows.push([a.fields.numero, def.code, fmtDate(a.fields.fecha), sec.title, it, valLabel(cur.v), cur.obs||'', now]);
+      if(cur.v) detailRows.push([a.fields.numero, def.code, entidad, fmtDate(a.fields.fecha), sec.title, it, valLabel(cur.v), cur.obs||'', now]);
     }));
     if(detailRows.length){
       await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Detalle!A1:append?valueInputOption=USER_ENTERED', {
         method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: detailRows }),
+      });
+    }
+    const personnelRows = (a.personnel||[]).filter(p=>p.nombre).map(p=>[
+      a.fields.numero, def.code, fmtDate(a.fields.fecha), p.tipo||'', p.nombre||'', p.funcion||'', p.sector||'',
+      p.capacitado==='si'?'Sí':p.capacitado==='no'?'No':'', now
+    ]);
+    if(personnelRows.length){
+      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Personal!A1:append?valueInputOption=USER_ENTERED', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: personnelRows }),
+      });
+    }
+    if(def.depositos && a.depositos){
+      const depositoRows = a.depositos.map(d=>[
+        a.fields.numero, fmtDate(a.fields.fecha), d.planta||'', d.nombre, d.sectores,
+        d.limpieza==='si'?'Sí':d.limpieza==='no'?'No':'', d.horario==='si'?'Sí':d.horario==='no'?'No':'', d.obs||'', now
+      ]);
+      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Depositos!A1:append?valueInputOption=USER_ENTERED', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: depositoRows }),
       });
     }
     a.lastSync = Date.now();
@@ -1553,7 +1871,7 @@ async function uploadPhotoToDrive(auditId, file, tag){
   try {
     await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Fotos!A1:append?valueInputOption=USER_ENTERED', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ values:[[numero, new Date().toLocaleString('es-AR'), metadata.name, json.webViewLink]] }),
+      body: JSON.stringify({ values:[[numero, new Date().toLocaleString('es-AR'), label, metadata.name, json.webViewLink]] }),
     });
   } catch(e){ /* no bloquea si falla el log */ }
   return json;
