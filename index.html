@@ -501,7 +501,7 @@ function newAudit(type){
     confirmed: false, // se pasa a true recién cuando toca "Guardar"
     fields: {}, tipoPersonal: null, items,
     personnel: [],
-    depositos: def.depositos ? def.depositos.grupos.flatMap(g=>g.rows.map(r=>({nombre:r.nombre, sectores:r.sectores, tramo:r.tramoDefault, planta:g.planta, limpieza:null, horario:null}))) : null,
+    depositos: def.depositos ? def.depositos.grupos.flatMap(g=>g.rows.map(r=>({nombre:r.nombre, sectores:r.sectores, planta:g.planta, limpieza:null, horario:null, obs:''}))) : null,
   };
   def.fields.forEach(f=>{
     if(f.key==='fecha') audit.fields[f.key] = todayISO();
@@ -734,15 +734,10 @@ function renderForm(){
         currentPlanta = dep.planta;
         b += `<div style="font-weight:800; font-size:13px; color:var(--navy); margin:14px 0 6px">${currentPlanta}</div>`;
       }
+      const depPhotos = (a.photos||[]).map((p,pi)=>({...p,pi})).filter(p=>p.depIndex===di);
       b += `<div class="deposito-card">
         <div class="dt">${dep.nombre}</div>
         <div class="ds">${dep.sectores}</div>
-        <div style="margin-top:8px; padding:8px 10px; background:#F5F7F9; border-radius:8px;">
-          <label style="font-size:9.5px; font-weight:700; color:var(--grey)">1.º TRAMO (solo referencia — auditado en AUD-RES-MUC-001)</label>
-          <select data-dep="${di}" data-dk="tramo" style="width:100%; margin-top:4px; border:1px solid var(--line); border-radius:7px; padding:6px 7px; font-size:11.5px; font-family:inherit; background:#fff;">
-            ${['Operador de limpieza','Empresa','Mixto — Hemoterapia: empresa directo; resto: operador de limpieza'].map(o=>`<option ${dep.tramo===o?'selected':''}>${o}</option>`).join('')}
-          </select>
-        </div>
         <div style="margin-top:8px; padding:9px 10px; background:var(--gold-bg); border-left:3px solid var(--gold); border-radius:0 8px 8px 0;">
           <label style="font-size:9.5px; font-weight:800; color:#5A4A18">A CARGO EXCLUSIVO DE STAR UNION — tramo depósito intermedio → depósito externo</label>
           <div class="deposito-grid" style="margin-top:6px">
@@ -760,6 +755,25 @@ function renderForm(){
                 <option value="no" ${dep.horario==='no'?'selected':''}>No</option>
               </select>
             </div>
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <label style="font-size:9.5px; font-weight:700; color:var(--grey)">OBSERVACIONES / HALLAZGOS DE ESTE DEPÓSITO</label>
+          <textarea data-dep="${di}" data-dk="obs" placeholder="Describir hallazgo, si corresponde..." style="width:100%; margin-top:4px; border:1px solid var(--line); border-radius:7px; padding:7px 8px; font-size:11.5px; font-family:inherit; min-height:44px; resize:vertical;">${dep.obs||''}</textarea>
+        </div>
+        <div style="margin-top:8px">
+          <label style="font-size:9.5px; font-weight:700; color:var(--grey)">FOTOS DE ESTE DEPÓSITO</label>
+          <div style="margin-top:4px; display:flex; flex-direction:column; gap:6px;">
+            ${depPhotos.map(p=>`<div class="firma-box" style="display:flex; align-items:center; gap:10px; justify-content:space-between; padding:7px 9px;">
+              <a href="${p.url}" target="_blank" style="display:flex; align-items:center; gap:8px; color:var(--navy); text-decoration:none; font-size:11.5px; font-weight:700">
+                ${icon('cloud_done', 'color:var(--ok); font-size:16px')} Foto — ${new Date(p.ts).toLocaleString('es-AR')} ${icon('open_in_new','font-size:13px')}
+              </a>
+              <span class="msi" style="font-size:15px; color:var(--bad); cursor:pointer" onclick="removePhoto('${a.id}',${p.pi})">${ICON_MAP.delete}</span>
+            </div>`).join('')}
+            ${a.confirmed ? `<label class="add-row-btn" style="cursor:pointer; padding:7px 9px; font-size:11.5px;">
+              ${icon('photo_camera','font-size:16px')} Tomar / subir foto de este depósito
+              <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoInput('${a.id}', this, ${di})">
+            </label>` : `<div style="font-size:10.5px; color:var(--grey)">Guardá la auditoría (botón "Guardar") para poder subir fotos.</div>`}
           </div>
         </div>
       </div>`;
@@ -812,7 +826,7 @@ function renderForm(){
   b += `<div class="add-row-btn" onclick="addPersonnel('${a.id}')">${icon('add_circle')} Agregar persona</div>`;
 
   // Photos
-  b += `<div class="section-label" style="margin:18px 0 8px">Fotos (se suben directo a Drive, no ocupan espacio en el celular)</div>`;
+  b += `<div class="section-label" style="margin:18px 0 8px">${def.depositos ? 'Fotos generales (no asociadas a un depósito puntual)' : 'Fotos'} — se suben directo a Drive, no ocupan espacio en el celular</div>`;
   b += renderPhotosSection(a);
 
   // Firmas note
@@ -830,16 +844,17 @@ function renderPhotosSection(a){
     html += `<div class="empty-state" style="padding:14px">Guardá la auditoría primero (botón "Guardar") para poder subir fotos.</div>`;
     return html;
   }
-  (a.photos||[]).forEach((p,pi)=>{
+  const generalPhotos = (a.photos||[]).map((p,pi)=>({...p,pi})).filter(p=>p.depIndex==null);
+  generalPhotos.forEach(p=>{
     html += `<div class="firma-box" style="display:flex; align-items:center; gap:10px; justify-content:space-between">
       <a href="${p.url}" target="_blank" style="display:flex; align-items:center; gap:8px; color:var(--navy); text-decoration:none; font-size:12px; font-weight:700">
         ${icon('cloud_done', 'color:var(--ok)')} Foto — ${new Date(p.ts).toLocaleString('es-AR')} ${icon('open_in_new','font-size:14px')}
       </a>
-      <span class="msi" style="font-size:16px; color:var(--bad); cursor:pointer" onclick="removePhoto('${a.id}',${pi})">${ICON_MAP.delete}</span>
+      <span class="msi" style="font-size:16px; color:var(--bad); cursor:pointer" onclick="removePhoto('${a.id}',${p.pi})">${ICON_MAP.delete}</span>
     </div>`;
   });
-  if((a.photos||[]).length===0){
-    html += `<div class="empty-state" style="padding:14px">Sin fotos cargadas todavía.</div>`;
+  if(generalPhotos.length===0){
+    html += `<div class="empty-state" style="padding:14px">Sin fotos generales cargadas todavía. Las fotos de un depósito puntual se cargan en su propia tarjeta, más arriba.</div>`;
   }
   html += `<label class="add-row-btn" style="cursor:pointer">
     ${icon('photo_camera')} Tomar / subir foto
@@ -1178,10 +1193,16 @@ function doPrint(id){
   if(def.depositos){
     h += `<div class="p-h2">${def.depositos.title}</div>`;
     ['Planta Alta','Planta Baja'].forEach(planta=>{
-      const rows = a.depositos.filter(d=>d.planta===planta);
+      const rows = a.depositos.map((d,di)=>({...d,di})).filter(d=>d.planta===planta);
       if(!rows.length) return;
       h += `<div style="font-weight:800; font-size:12px; color:#0D313F; margin:8px 0 4px">${planta}</div>`;
-      h += pTable(['Depósito','1.º tramo','Limpieza','Horario'], rows.map(d=>[d.nombre+' — '+d.sectores, d.tramo, d.limpieza||'—', d.horario||'—']));
+      h += pTable(['Depósito','Limpieza','Horario','Observaciones'], rows.map(d=>[d.nombre+' — '+d.sectores, d.limpieza||'—', d.horario||'—', esc(d.obs||'—')]));
+      rows.forEach(d=>{
+        const fotos = (a.photos||[]).filter(p=>p.depIndex===d.di);
+        if(fotos.length){
+          h += `<div class="p-meta" style="margin:2px 0 8px"><b>Fotos — ${esc(d.nombre)}:</b> ${fotos.map(p=>`<a href="${p.url}">${new Date(p.ts).toLocaleDateString('es-AR')}</a>`).join(' · ')}</div>`;
+        }
+      });
     });
   }
 
@@ -1205,9 +1226,10 @@ function doPrint(id){
     return row;
   }));
 
-  if((a.photos||[]).length>0){
-    h += `<div class="p-h2">Fotos (archivadas en Google Drive)</div>`;
-    h += pTable(['Fecha', 'Link'], a.photos.map(p=>[new Date(p.ts).toLocaleString('es-AR'), p.url]));
+  const generalPhotosForPdf = (a.photos||[]).filter(p=>p.depIndex==null);
+  if(generalPhotosForPdf.length>0){
+    h += `<div class="p-h2">${def.depositos ? 'Fotos generales (archivadas en Google Drive)' : 'Fotos (archivadas en Google Drive)'}</div>`;
+    h += pTable(['Fecha', 'Link'], generalPhotosForPdf.map(p=>[new Date(p.ts).toLocaleString('es-AR'), p.url]));
   }
 
   h += `<div class="p-h2">Firmas</div><div class="p-fields">` + def.firmas.map(f=>`<div><b>${f}</b><br>Firma: _______________ &nbsp; Aclaración: _______________ &nbsp; Fecha: _______</div>`).join('') + `</div>`;
@@ -1457,11 +1479,12 @@ function slugify(text){
     .replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'sf';
 }
 
-async function uploadPhotoToDrive(auditId, file){
+async function uploadPhotoToDrive(auditId, file, depIndex){
   const cfg = await ensureDriveSetup();
   const a = getAudit(auditId);
   const def = FORM_DEFS[a.type];
-  const label = a.fields.servicio || a.fields.empresa || def.title;
+  const dep = (depIndex!=null && a.depositos) ? a.depositos[depIndex] : null;
+  const label = dep ? dep.nombre : (a.fields.servicio || a.fields.empresa || def.title);
   const numero = a.fields.numero || 's-n';
   const fechaSlug = (a.fields.fecha || todayISO());
   const seq = ((a.photos||[]).length + 1);
@@ -1491,7 +1514,7 @@ async function uploadPhotoToDrive(auditId, file){
   return json;
 }
 
-async function handlePhotoInput(auditId, inputEl){
+async function handlePhotoInput(auditId, inputEl, depIndex){
   const file = inputEl.files[0];
   if(!file) return;
   const a0 = getAudit(auditId);
@@ -1502,10 +1525,10 @@ async function handlePhotoInput(auditId, inputEl){
   }
   toast('Subiendo foto a Drive...');
   try {
-    const result = await uploadPhotoToDrive(auditId, file);
+    const result = await uploadPhotoToDrive(auditId, file, depIndex);
     const a = getAudit(auditId);
     a.photos = a.photos || [];
-    a.photos.push({ id: result.id, url: result.webViewLink, ts: Date.now() });
+    a.photos.push({ id: result.id, url: result.webViewLink, ts: Date.now(), depIndex: depIndex!=null ? depIndex : null });
     upsertAudit(a);
     toast('Foto subida a Drive ✓');
     rerenderInPlace();
