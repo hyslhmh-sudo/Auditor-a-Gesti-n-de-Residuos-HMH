@@ -796,6 +796,10 @@ function renderForm(){
 
 function renderPhotosSection(a){
   let html = '';
+  if(!a.confirmed){
+    html += `<div class="empty-state" style="padding:14px">Guardá la auditoría primero (botón "Guardar") para poder subir fotos.</div>`;
+    return html;
+  }
   (a.photos||[]).forEach((p,pi)=>{
     html += `<div class="firma-box" style="display:flex; align-items:center; gap:10px; justify-content:space-between">
       <a href="${p.url}" target="_blank" style="display:flex; align-items:center; gap:8px; color:var(--navy); text-decoration:none; font-size:12px; font-weight:700">
@@ -1328,15 +1332,15 @@ async function ensureDriveSetup(){
   });
   await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheet.spreadsheetId+'/values/Resumen!A1:append?valueInputOption=USER_ENTERED', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ values: [['ID Auditoría','Tipo Doc','Fecha','Servicio/Empresa','Tipo Personal (P/E)','Auditor','Cumple','No Cumple','N/A','% Cumplimiento','Sincronizado']] }),
+    body: JSON.stringify({ values: [['N.º Auditoría','Tipo Doc','Fecha','Servicio/Empresa','Tipo Personal (P/E)','Auditor','Cumple','No Cumple','N/A','% Cumplimiento','Sincronizado']] }),
   });
   await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheet.spreadsheetId+'/values/Detalle!A1:append?valueInputOption=USER_ENTERED', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ values: [['ID Auditoría','Tipo Doc','Fecha','Sección','Ítem','Resultado','Observación','Sincronizado']] }),
+    body: JSON.stringify({ values: [['N.º Auditoría','Tipo Doc','Fecha','Sección','Ítem','Resultado','Observación','Sincronizado']] }),
   });
   await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheet.spreadsheetId+'/values/Fotos!A1:append?valueInputOption=USER_ENTERED', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ values: [['ID Auditoría','Fecha','Archivo','Link Drive']] }),
+    body: JSON.stringify({ values: [['N.º Auditoría','Fecha','Archivo','Link Drive']] }),
   });
   cfg = { folderId: folder.id, sheetId: sheet.spreadsheetId, sheetUrl: sheet.spreadsheetUrl };
   saveDriveConfig(cfg);
@@ -1356,14 +1360,14 @@ async function syncAuditToSheet(auditId){
     const st = computeStats(a);
     const label = a.fields.servicio || a.fields.empresa || def.title;
     const now = new Date().toLocaleString('es-AR');
-    const row = [a.id, def.code, fmtDate(a.fields.fecha), label, a.tipoPersonal||'', a.fields.auditor||'', st.ok, st.bad, st.na, st.pct===null?'':st.pct, now];
+    const row = [a.fields.numero, def.code, fmtDate(a.fields.fecha), label, a.tipoPersonal||'', a.fields.auditor||'', st.ok, st.bad, st.na, st.pct===null?'':st.pct, now];
     await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Resumen!A1:append?valueInputOption=USER_ENTERED', {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values:[row] }),
     });
     const detailRows = [];
     def.sections.forEach((sec,si)=> sec.items.forEach((it,ii)=>{
       const cur = a.items[si+'_'+ii];
-      if(cur.v) detailRows.push([a.id, def.code, fmtDate(a.fields.fecha), sec.title, it, valLabel(cur.v), cur.obs||'', now]);
+      if(cur.v) detailRows.push([a.fields.numero, def.code, fmtDate(a.fields.fecha), sec.title, it, valLabel(cur.v), cur.obs||'', now]);
     }));
     if(detailRows.length){
       await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Detalle!A1:append?valueInputOption=USER_ENTERED', {
@@ -1413,7 +1417,7 @@ async function uploadPhotoToDrive(auditId, file){
   try {
     await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Fotos!A1:append?valueInputOption=USER_ENTERED', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ values:[[auditId, new Date().toLocaleString('es-AR'), metadata.name, json.webViewLink]] }),
+      body: JSON.stringify({ values:[[numero, new Date().toLocaleString('es-AR'), metadata.name, json.webViewLink]] }),
     });
   } catch(e){ /* no bloquea si falla el log */ }
   return json;
@@ -1422,6 +1426,12 @@ async function uploadPhotoToDrive(auditId, file){
 async function handlePhotoInput(auditId, inputEl){
   const file = inputEl.files[0];
   if(!file) return;
+  const a0 = getAudit(auditId);
+  if(!a0.confirmed){
+    toast('Primero tocá "Guardar" para confirmar la auditoría, después subí fotos.');
+    inputEl.value = '';
+    return;
+  }
   toast('Subiendo foto a Drive...');
   try {
     const result = await uploadPhotoToDrive(auditId, file);
