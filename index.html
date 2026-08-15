@@ -317,7 +317,7 @@ trans: {
   subtitle: 'Transporte Interno — Depósitos, Limpieza y Traslado',
   icon: 'trolley',
   color: '#C9971F',
-  intro: 'Aplica a la empresa tercerizada (Star Union), responsable en TODOS los depósitos —sin excepción— de la limpieza/desinfección y el traslado hasta el depósito final y retiro externo. También realiza el 1.º tramo en los sectores sin operador de limpieza propio.',
+  intro: 'El proceso auditado en este formulario es específicamente el tramo depósito intermedio → depósito final de residuos del HMH, que realiza únicamente Star Union. Star Union también es responsable exclusiva de la limpieza del depósito intermedio, el depósito final, y el ascensor/circuito utilizado para ese traslado. El 1.º tramo (punto de generación → depósito intermedio) NO se audita acá — se releva siempre en AUD-RES-MUC-001, sea quien sea que lo haga.',
   fields: [
     { key: 'fecha', label: 'Fecha', type: 'date' },
     { key: 'numero', label: 'N.º de auditoría', type: 'text', readonly: true },
@@ -327,7 +327,7 @@ trans: {
   ],
   depositos: {
     title: 'Depósitos intermedios — detalle por unidad (Anexo B)',
-    note: 'La limpieza/desinfección y el traslado son responsabilidad de la empresa en los 9 depósitos, sin excepción.',
+    note: 'El "1.º tramo" es solo referencia informativa (quién junta hasta este depósito — auditado en AUD-RES-MUC-001). El resto de esta tabla —ascensor/circuito, limpieza y horario de traslado— es exclusivamente sobre el tramo depósito intermedio → depósito final de residuos del HMH, que realiza y limpia únicamente Star Union, sin excepción.',
     rows: [
       { nombre: 'Dep. Cuidados Progresivos', sectores: 'Cuidados Progresivos, Hemoterapia, Guardia', tramoDefault: 'Mixto — verificar Hemoterapia' },
       { nombre: 'Dep. Cocina', sectores: 'Cocina, Pasillos', tramoDefault: 'Empresa' },
@@ -347,12 +347,12 @@ trans: {
       'El estado general de los carros es adecuado (sin roturas, óxido, tapas dañadas).',
       'No se utilizan los carros para ropa, alimentos, medicamentos u objetos ajenos a residuos.',
     ]},
-    { title: 'Rutas y frecuencia de recolección', note: 'Verificar contra los Anexos C (turnos) e I (circuitos) del manual.', items: [
-      'El recorrido observado corresponde a las rutas señalizadas del Anexo I.',
+    { title: 'Rutas y frecuencia de traslado a depósito final', note: 'Verificar contra el Anexo I (circuitos) del manual, para el trayecto depósito intermedio → depósito final.', items: [
+      'El recorrido observado corresponde a las rutas y ascensores señalizados del Anexo I.',
       'No se utilizan pasillos o ascensores destinados a pacientes o público.',
-      'El retiro se realiza dentro de los turnos establecidos (7:00-8:30 / 13:00-14:00 / 14:30-15:30 / 20:00-21:00 hs).',
-      'La frecuencia de retiro de biopatogénicos no supera las 24 horas desde su generación.',
-      'No hay bolsas abiertas, mal cerradas o con exceso de carga durante el traslado.',
+      'El traslado a depósito final se realiza dentro de los turnos/horarios establecidos para ese circuito.',
+      'Los biopatogénicos no permanecen acopiados en el depósito intermedio más del tiempo máximo establecido antes de su traslado a depósito final.',
+      'No hay bolsas abiertas, mal cerradas o con exceso de carga durante el traslado a depósito final.',
     ]},
     { title: 'Depósitos — condiciones generales', items: [
       'Cada depósito intermedio recibe únicamente las corrientes asignadas según el Anexo B.',
@@ -705,32 +705,36 @@ function renderForm(){
       b += `<div class="deposito-card">
         <div class="dt">${dep.nombre}</div>
         <div class="ds">${dep.sectores}</div>
-        <div class="deposito-grid">
-          <div class="fg"><label>1.º tramo</label>
-            <select data-dep="${di}" data-dk="tramo">
-              ${['Operador de limpieza','Empresa','Mixto — verificar Hemoterapia','Mixto — verificar Pediatría'].map(o=>`<option ${dep.tramo===o?'selected':''}>${o}</option>`).join('')}
-            </select>
-          </div>
-          <div class="fg"><label>Circuito / ascensor</label>
-            <select data-dep="${di}" data-dk="circuito">
-              <option value="" ${!dep.circuito?'selected':''}>—</option>
-              <option ${dep.circuito==='Planta Baja'?'selected':''}>Planta Baja</option>
-              <option ${dep.circuito==='Planta Alta'?'selected':''}>Planta Alta</option>
-            </select>
-          </div>
-          <div class="fg"><label>Cumple limpieza</label>
-            <select data-dep="${di}" data-dk="limpieza">
-              <option value="" ${dep.limpieza===null?'selected':''}>—</option>
-              <option value="si" ${dep.limpieza==='si'?'selected':''}>Sí</option>
-              <option value="no" ${dep.limpieza==='no'?'selected':''}>No</option>
-            </select>
-          </div>
-          <div class="fg"><label>Cumple horario</label>
-            <select data-dep="${di}" data-dk="horario">
-              <option value="" ${dep.horario===null?'selected':''}>—</option>
-              <option value="si" ${dep.horario==='si'?'selected':''}>Sí</option>
-              <option value="no" ${dep.horario==='no'?'selected':''}>No</option>
-            </select>
+        <div style="margin-top:8px; padding:8px 10px; background:#F5F7F9; border-radius:8px;">
+          <label style="font-size:9.5px; font-weight:700; color:var(--grey)">1.º TRAMO (solo referencia — auditado en AUD-RES-MUC-001)</label>
+          <select data-dep="${di}" data-dk="tramo" style="width:100%; margin-top:4px; border:1px solid var(--line); border-radius:7px; padding:6px 7px; font-size:11.5px; font-family:inherit; background:#fff;">
+            ${['Operador de limpieza','Empresa','Mixto — verificar Hemoterapia','Mixto — verificar Pediatría'].map(o=>`<option ${dep.tramo===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div style="margin-top:8px; padding:9px 10px; background:var(--gold-bg); border-left:3px solid var(--gold); border-radius:0 8px 8px 0;">
+          <label style="font-size:9.5px; font-weight:800; color:#5A4A18">A CARGO EXCLUSIVO DE STAR UNION — tramo depósito intermedio → depósito final</label>
+          <div class="deposito-grid" style="margin-top:6px">
+            <div class="fg"><label>Ascensor / circuito usado</label>
+              <select data-dep="${di}" data-dk="circuito">
+                <option value="" ${!dep.circuito?'selected':''}>—</option>
+                <option ${dep.circuito==='Planta Baja'?'selected':''}>Planta Baja</option>
+                <option ${dep.circuito==='Planta Alta'?'selected':''}>Planta Alta</option>
+              </select>
+            </div>
+            <div class="fg"><label>Limpieza depósito + ascensor</label>
+              <select data-dep="${di}" data-dk="limpieza">
+                <option value="" ${dep.limpieza===null?'selected':''}>—</option>
+                <option value="si" ${dep.limpieza==='si'?'selected':''}>Sí</option>
+                <option value="no" ${dep.limpieza==='no'?'selected':''}>No</option>
+              </select>
+            </div>
+            <div class="fg"><label>Traslado a dep. final cumple horario</label>
+              <select data-dep="${di}" data-dk="horario">
+                <option value="" ${dep.horario===null?'selected':''}>—</option>
+                <option value="si" ${dep.horario==='si'?'selected':''}>Sí</option>
+                <option value="no" ${dep.horario==='no'?'selected':''}>No</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>`;
