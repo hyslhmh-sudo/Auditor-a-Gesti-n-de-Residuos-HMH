@@ -37,8 +37,15 @@ html,body{margin:0; padding:0; background:var(--paper); color:var(--ink); font-f
 
 /* ===== Top bar ===== */
 .topbar{position:sticky; top:0; z-index:20; background:var(--navy); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:10px;}
-.logoband{background:#fff; padding:14px 18px; display:flex; align-items:center; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:21;}
-.logoband img{height:34px; display:block;}
+.logoband{background:#fff; padding:16px 18px; display:flex; align-items:center; border-bottom:1px solid var(--line);}
+.logoband img{height:46px; display:block;}
+.navband{background:linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%); padding:20px 18px 22px; position:relative; overflow:hidden;}
+.navband::after{content:''; position:absolute; top:-40px; right:-40px; width:140px; height:140px; border-radius:50%; background:rgba(255,255,255,0.05);}
+.navband .s{font-size:12px; font-weight:800; letter-spacing:.03em; color:#fff; text-transform:uppercase;}
+.navband .s2{font-size:12.5px; color:#8FCBDE; margin-top:2px; font-weight:600;}
+.navband h1{font-size:22px; margin:10px 0 3px; color:#fff; font-weight:800; line-height:1.25;}
+.navband p{font-size:12.5px; color:#B9C6DE; margin:0;}
+.tealstrip{height:5px; background:linear-gradient(90deg, var(--teal), #7BB4C4);}
 .topbar .msi{font-size:24px; cursor:pointer; padding:4px;}
 .topbar h1{font-size:16px; margin:0; font-weight:800; flex:1; line-height:1.25;}
 .topbar .sub{font-size:11px; color:#BFD3DA; font-weight:500;}
@@ -502,12 +509,14 @@ function renderHome(){
 
   let html = `
   <div class="logoband"><img src="data:image/png;base64,${LOGO_B64}" alt="Hospital María Humphreys"></div>
-  <div class="home-header">
-    <div class="brand">${icon('folder_open')} HySL — Higiene y Seguridad Laboral</div>
-    <h1>Auditorías de Residuos</h1>
-    <p>Hospital María Humphreys — HMH</p>
+  <div class="navband">
+    <div class="s">Servicio de Higiene y Seguridad Laboral</div>
+    <div class="s2">Lic. Belén Pellegrini — MP LCOHSECH0383</div>
+    <h1>Sistema de Gestión de Auditorías</h1>
+    <p>Residuos Hospitalarios — Hospital María Humphreys (HMH)</p>
   </div>
-  <div class="section-label">Nueva auditoría</div>
+  <div class="tealstrip"></div>
+  <div class="section-label" style="margin-top:22px">Nueva auditoría</div>
   <div class="type-grid">
     ${['gen','muc','trans'].map(t=>{
       const d = FORM_DEFS[t];
