@@ -268,7 +268,7 @@ muc: {
   subtitle: 'Recolección de Residuos en el Punto de Generación',
   icon: 'cleaning_services',
   color: '#5894A7',
-  intro: 'Aplica al personal que realiza el retiro de bolsas cerradas hasta el depósito intermedio — sea personal de planta hospitalaria o de la empresa tercerizada. Marcar el tipo de personal auditado.',
+  intro: 'Aplica al personal que realiza el retiro de bolsas cerradas hasta el depósito intermedio — sea personal de planta hospitalaria o de la empresa tercerizada (Star Union). Marcar el tipo de personal auditado.',
   tipoPersonal: true,
   fields: [
     { key: 'fecha', label: 'Fecha', type: 'date' },
@@ -317,7 +317,7 @@ trans: {
   subtitle: 'Transporte Interno — Depósitos, Limpieza y Traslado',
   icon: 'trolley',
   color: '#C9971F',
-  intro: 'Aplica a la empresa tercerizada, responsable en TODOS los depósitos —sin excepción— de la limpieza/desinfección y el traslado hasta el depósito final y retiro externo. También realiza el 1.º tramo en los sectores sin operador de limpieza propio.',
+  intro: 'Aplica a la empresa tercerizada (Star Union), responsable en TODOS los depósitos —sin excepción— de la limpieza/desinfección y el traslado hasta el depósito final y retiro externo. También realiza el 1.º tramo en los sectores sin operador de limpieza propio.',
   fields: [
     { key: 'fecha', label: 'Fecha', type: 'date' },
     { key: 'numero', label: 'N.º de auditoría', type: 'text', readonly: true },
@@ -401,13 +401,13 @@ const REFERENCIAS = {
   ],
   tipoPersonal: [
     ['P', 'Personal de planta hospitalaria (personal propio del hospital).'],
-    ['E', 'Personal de la empresa tercerizada de limpieza.'],
+    ['E', 'Personal de la empresa tercerizada de limpieza (Star Union).'],
   ],
   entidad: [
     ['G', 'Generador — servicio asistencial (segregación en origen).'],
     ['M-P', 'Operador de limpieza de planta hospitalaria (1.º tramo, personal propio).'],
     ['M-E', 'Operador de limpieza de la empresa tercerizada (1.º tramo, personal de la empresa).'],
-    ['T', 'Servicio de transporte y depósitos — empresa tercerizada.'],
+    ['T', 'Servicio de transporte y depósitos — empresa tercerizada (Star Union).'],
   ],
   clasificacion: [
     ['Leve', 'No representa riesgo inmediato; requiere corrección administrativa.'],
@@ -480,6 +480,7 @@ function newAudit(type){
     if(f.key==='fecha') audit.fields[f.key] = todayISO();
     else if(f.key==='horario') audit.fields[f.key] = new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit', hour12:false});
     else if(f.key==='auditor') audit.fields[f.key] = 'Lic. Belén Pellegrini — MP LCOHSECH0383';
+    else if(f.key==='empresa') audit.fields[f.key] = 'Star Union';
     else audit.fields[f.key] = '';
   });
   audit.fields.numero = ''; // se asigna recién al confirmar el guardado, para no saltear números con borradores abandonados
