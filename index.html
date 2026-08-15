@@ -561,7 +561,9 @@ function renderHome(){
     });
     html += `</div>`;
   }
-  html += `<div style="height:24px"></div>`;
+  html += `<div style="padding:24px 18px; text-align:center;">
+    <span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer" onclick="resetAllData()">Borrar todos los datos de la app</span>
+  </div>`;
 
   document.getElementById('app').innerHTML = `
     <div class="topbar">
@@ -585,6 +587,17 @@ function confirmDeleteInforme(id){
   if(confirm('¿Eliminar este informe guardado?')){
     saveInformes(loadInformes().filter(i=>i.id!==id)); toast('Informe eliminado'); render();
   }
+}
+
+function resetAllData(){
+  if(!confirm('¿Borrar TODAS las auditorías, informes y la configuración de Drive guardadas en este navegador? Esta acción no se puede deshacer.')) return;
+  if(!confirm('Confirmá de nuevo: se va a borrar todo lo cargado en esta app (no afecta lo que ya esté sincronizado en tu Google Sheet o Drive, eso hay que borrarlo aparte desde ahí si querés).')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(INFORMES_KEY);
+  localStorage.removeItem(COUNTERS_KEY);
+  localStorage.removeItem(DRIVE_CONFIG_KEY);
+  toast('Todo borrado ✓');
+  setTimeout(()=>{ state.view='home'; render(); }, 400);
 }
 
 // ============ RENDER: FORM ============
