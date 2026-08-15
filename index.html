@@ -429,6 +429,10 @@ const INFORMES_KEY = 'hmh_informes_v1';
 
 function loadAudits(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ return []; } }
 function saveAudits(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+// Solo las auditorías CONFIRMADAS (guardadas explícitamente) — para la lista del Inicio y el Informe.
+function loadConfirmedAudits(){ return loadAudits().filter(a=>a.confirmed); }
+// Borradores: existen y persisten en el celu (sin internet), pero todavía no fueron confirmados.
+function loadDraftAudits(){ return loadAudits().filter(a=>!a.confirmed); }
 function loadInformes(){ try{ return JSON.parse(localStorage.getItem(INFORMES_KEY)) || []; }catch(e){ return []; } }
 function saveInformes(list){ localStorage.setItem(INFORMES_KEY, JSON.stringify(list)); }
 
@@ -467,6 +471,7 @@ function newAudit(type){
   def.sections.forEach((s,si)=> s.items.forEach((it,ii)=>{ items[si+'_'+ii] = { v:null, obs:'' }; }));
   const audit = {
     id: uid(), type, createdAt: Date.now(), updatedAt: Date.now(),
+    confirmed: false, // se pasa a true recién cuando toca "Guardar"
     fields: {}, tipoPersonal: null, items,
     personnel: [],
     depositos: def.depositos ? def.depositos.rows.map(r=>({nombre:r.nombre, sectores:r.sectores, tramo:r.tramoDefault, circuito:'', limpieza:null, horario:null})) : null,
@@ -477,7 +482,7 @@ function newAudit(type){
     else if(f.key==='auditor') audit.fields[f.key] = 'Lic. Belén Pellegrini — MP LCOHSECH0383';
     else audit.fields[f.key] = '';
   });
-  audit.fields.numero = nextNumero(type);
+  audit.fields.numero = ''; // se asigna recién al confirmar el guardado, para no saltear números con borradores abandonados
   return audit;
 }
 
@@ -504,7 +509,8 @@ function computeStats(audit){
 
 // ============ RENDER: HOME ============
 function renderHome(){
-  const audits = loadAudits().sort((a,b)=>b.updatedAt-a.updatedAt);
+  const audits = loadConfirmedAudits().sort((a,b)=>b.updatedAt-a.updatedAt);
+  const drafts = loadDraftAudits().sort((a,b)=>b.updatedAt-a.updatedAt);
   const informes = loadInformes().sort((a,b)=>b.updatedAt-a.updatedAt);
 
   let html = `
@@ -539,8 +545,29 @@ function renderHome(){
       <div class="s">Se abre la planilla con todo lo sincronizado</div>
     </div>
     ${icon('open_in_new', 'color:var(--grey)')}
-  </div>
-  <div class="section-label">Auditorías guardadas (${audits.length})</div>
+  </div>`;
+
+  if(drafts.length>0){
+    html += `<div class="section-label" style="margin-top:22px">Borradores sin confirmar (${drafts.length})</div>
+    <div class="intro-box" style="margin:0 18px 10px; width:auto">Se están guardando solo en este celular, sin internet. Todavía no tienen número asignado ni cuentan para el Informe. Abrilos y tocá <b>Guardar</b> para registrarlos.</div>
+    <div class="audit-list">`;
+    drafts.forEach(a=>{
+      const def = FORM_DEFS[a.type];
+      const st = computeStats(a);
+      const label = a.fields.servicio || a.fields.empresa || def.title;
+      html += `<div class="audit-item" style="border-style:dashed; border-color:var(--gold); background:var(--gold-bg)" onclick="openAudit('${a.id}')">
+        <div class="ic" style="background:${def.color}">${icon(def.icon)}</div>
+        <div class="body">
+          <div class="t">${label}</div>
+          <div class="s">${def.code} · Borrador · ${st.total>0?st.total+' ítems cargados':'sin empezar'}</div>
+        </div>
+        <div class="del" onclick="event.stopPropagation(); confirmDeleteAudit('${a.id}')">${icon('delete')}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="section-label">Auditorías guardadas (${audits.length})</div>
   <div class="audit-list">`;
 
   if(audits.length===0){
@@ -555,7 +582,7 @@ function renderHome(){
         <div class="ic" style="background:${def.color}">${icon(def.icon)}</div>
         <div class="body">
           <div class="t">${label}</div>
-          <div class="s">${def.code} · ${fmtDate(a.fields.fecha)}</div>
+          <div class="s">${def.code} · N.º ${a.fields.numero} · ${fmtDate(a.fields.fecha)}</div>
         </div>
         <div class="pct" style="color:${pctColor}">${st.pct===null?'—':st.pct+'%'}</div>
         <div class="del" onclick="event.stopPropagation(); confirmDeleteAudit('${a.id}')">${icon('delete')}</div>
@@ -647,12 +674,19 @@ function renderForm(){
   // Fields
   b += `<div class="field-grid">`;
   def.fields.forEach(f=>{
+    const isNumeroPending = f.key==='numero' && !a.confirmed;
+    const displayVal = isNumeroPending ? 'Se asigna al guardar' : (a.fields[f.key]||'');
     b += `<div class="field ${f.full?'full':''}">
       <label>${f.label}</label>
-      <input type="${f.type}" value="${escAttr(a.fields[f.key]||'')}" data-field="${f.key}" ${f.readonly?'readonly style="background:#EEF0F2; color:var(--grey)"':''}>
+      <input type="${isNumeroPending?'text':f.type}" value="${escAttr(displayVal)}" data-field="${f.key}" ${(f.readonly||isNumeroPending)?'readonly style="background:#EEF0F2; color:var(--grey); font-style:'+(isNumeroPending?'italic':'normal')+'"':''}>
     </div>`;
   });
   b += `</div>`;
+  if(!a.confirmed){
+    b += `<div class="intro-box" style="background:var(--gold-bg); border-left-color:var(--gold); color:#5A4A18">
+      ${icon('cloud_off','font-size:16px; margin-right:6px; vertical-align:-3px')}<b>Borrador sin confirmar.</b> Se está guardando solo en este celular a medida que trabajás (no hace falta internet). No aparece en "Auditorías guardadas" ni tiene número asignado hasta que toques <b>Guardar</b>.
+    </div>`;
+  }
 
   if(def.tipoPersonal){
     b += `<div class="tipo-toggle">
@@ -845,12 +879,20 @@ function setTipoPersonal(t){
 }
 function manualSave(id){
   collectFieldInputs();
-  toast('Auditoría guardada');
+  const a = getAudit(id);
+  const wasConfirmed = a.confirmed;
+  if(!a.confirmed){
+    a.confirmed = true;
+    a.fields.numero = nextNumero(a.type);
+    upsertAudit(a);
+  }
+  toast(wasConfirmed ? 'Cambios guardados ✓' : 'Auditoría guardada y registrada ✓ — N.º ' + a.fields.numero);
+  rerenderInPlace();
 }
 function collectFieldInputs(){
   const a = getAudit(state.auditId);
   if(!a) return;
-  document.querySelectorAll('[data-field]').forEach(inp=>{ a.fields[inp.dataset.field] = inp.value; });
+  document.querySelectorAll('[data-field]').forEach(inp=>{ if(!inp.readOnly) a.fields[inp.dataset.field] = inp.value; });
   document.querySelectorAll('[data-dep]').forEach(inp=>{
     const di = +inp.dataset.dep, dk = inp.dataset.dk;
     a.depositos[di][dk] = inp.value || null;
@@ -871,7 +913,7 @@ function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,
 function goInformeNew(){ state.view='informe-new'; render(); }
 
 function renderInformeNew(){
-  const all = loadAudits().sort((a,b)=>b.updatedAt-a.updatedAt);
+  const all = loadConfirmedAudits().sort((a,b)=>b.updatedAt-a.updatedAt);
   const today = todayISO();
   const monthAgo = new Date(Date.now()-30*86400000).toISOString().slice(0,10);
   document.getElementById('app').innerHTML = `
@@ -1304,6 +1346,10 @@ async function ensureDriveSetup(){
 
 async function syncAuditToSheet(auditId){
   const a = getAudit(auditId);
+  if(!a.confirmed){
+    toast('Primero tocá "Guardar" para confirmar la auditoría, después sincronizá.');
+    return;
+  }
   const def = FORM_DEFS[a.type];
   try {
     const cfg = await ensureDriveSetup();
