@@ -1587,7 +1587,8 @@ async function loadPersonalYCapacitaciones(){
   const crows = (capRes.values||[]);
   _capCache = crows.filter(r=>/^CAP-\d+$/.test(r[0]||'')).map(r=>({
     idRegistro: r[0]||'', fecha: r[1]||'', tema: r[2]||'', dni: normDni(r[3]),
-    nombre: r[4]||'', aprobo: r[9]||'', vencimiento: r[11]||'', estado: r[12]||'',
+    nombre: r[4]||'', establecimiento: r[5]||'', servicio: r[6]||'', puesto: r[7]||'',
+    aprobo: r[11]||'', vencimiento: r[13]||'', estado: r[14]||'',
   }));
 }
 
@@ -1610,7 +1611,16 @@ async function buscarPorDNI(pi){
     p.nombre = m.nombre; p.sector = m.servicio; p.funcion = m.puesto;
     if(matches.length>1) toast('Encontrado ('+matches.length+' registros con este DNI — se usó el más relevante). Revisá los datos.');
   } else {
-    toast('DNI no encontrado en la Base de Personal. Cargá los datos a mano.');
+    // Respaldo: la persona no está en la Base de Personal (02_BASE_PERSONAS), pero
+    // puede tener cargado algún registro de capacitación (de cualquier tema, no solo
+    // residuos) con su nombre/establecimiento/servicio/puesto — los usamos igual.
+    const anyCap = _capCache.filter(x=>x.dni===dni).sort((x,y)=> (x.fecha<y.fecha?1:-1))[0];
+    if(anyCap && anyCap.nombre){
+      p.nombre = anyCap.nombre; p.sector = anyCap.servicio; p.funcion = anyCap.puesto;
+      toast('No está en la Base de Personal — datos completados desde un registro de capacitación existente. Revisalos.');
+    } else {
+      toast('DNI no encontrado en la Base de Personal. Cargá los datos a mano.');
+    }
   }
   // Capacitación específica: "Gestión de Residuos Hospitalarios" — se toma el
   // registro más reciente por fecha. Se mira APROBO y FECHA_VENCIMIENTO directo,
