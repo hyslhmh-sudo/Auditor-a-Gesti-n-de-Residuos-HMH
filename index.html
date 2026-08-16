@@ -199,7 +199,7 @@ html,body{margin:0; padding:0; background:var(--paper); color:var(--ink); font-f
 <div class="toast" id="toast"></div>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-window.__ICON_MAP__ = {"home":"\ue9b2","add_circle":"\ue990","edit":"\uf097","delete":"\ue92e","print":"\ue8ad","download":"\uf090","arrow_back":"\ue5c4","check_circle":"\uf0be","cancel":"\ue888","remove_circle":"\uf08f","badge":"\uea67","cleaning_services":"\uf0ff","local_shipping":"\ue558","fact_check":"\uf0c5","expand_more":"\ue5cf","expand_less":"\ue5ce","save":"\ue161","close":"\ue5cd","warning":"\uf083","task_alt":"\ue2e6","folder_open":"\ue2c8","menu_book":"\uea19","info":"\ue88e","description":"\ue873","groups":"\uf233","done_all":"\ue877","history":"\ue8b3","share":"\ue80d","photo_camera":"\ue412","cloud_upload":"\ue2c3","cloud_done":"\ue2bf","cloud_off":"\ue2c1","sync":"\ue627","open_in_new":"\ue89e","delete_forever":"\ue92b","trolley":"\uf86b"};
+window.__ICON_MAP__ = {"home":"\ue9b2","add_circle":"\ue990","edit":"\uf097","delete":"\ue92e","print":"\ue8ad","download":"\uf090","arrow_back":"\ue5c4","check_circle":"\uf0be","cancel":"\ue888","remove_circle":"\uf08f","badge":"\uea67","cleaning_services":"\uf0ff","local_shipping":"\ue558","fact_check":"\uf0c5","expand_more":"\ue5cf","expand_less":"\ue5ce","save":"\ue161","close":"\ue5cd","warning":"\uf083","task_alt":"\ue2e6","folder_open":"\ue2c8","menu_book":"\uea19","info":"\ue88e","description":"\ue873","groups":"\uf233","done_all":"\ue877","history":"\ue8b3","share":"\ue80d","photo_camera":"\ue412","cloud_upload":"\ue2c3","cloud_done":"\ue2bf","cloud_off":"\ue2c1","sync":"\ue627","open_in_new":"\ue89e","delete_forever":"\ue92b","trolley":"\uf86b","search":"\ue8b6"};
 </script>
 <script>
 // ============ DATA MODEL — Auditorías de Gestión de Residuos HMH ============
@@ -1078,11 +1078,13 @@ function toggleFotos(key){
 
 function renderPersonnelTable(a, def){
   const cols = def.personnel.tipo
-    ? ['Tipo','Nombre y Apellido','Función','Sector','Capacitado']
-    : ['Nombre y Apellido','Función','Sector','Capacitado'];
+    ? ['DNI','Tipo','Nombre y Apellido','Función','Sector','Capacitado']
+    : ['DNI','Nombre y Apellido','Función','Sector','Capacitado'];
   let html = `<div class="ptable-wrap"><table class="personnel-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}<th></th></tr></thead><tbody>`;
   a.personnel.forEach((p,pi)=>{
     html += '<tr>';
+    html += `<td style="white-space:nowrap"><input data-p="${pi}" data-pk="dni" value="${escAttr(p.dni||'')}" placeholder="DNI" style="width:78px; display:inline-block">
+      <span class="msi" style="font-size:15px; color:var(--teal); cursor:pointer; vertical-align:middle" title="Buscar por DNI" onclick="buscarPorDNI(${pi})">${ICON_MAP.search||'search'}</span></td>`;
     if(def.personnel.tipo){
       html += `<td><select data-p="${pi}" data-pk="tipo"><option value="" ${!p.tipo?'selected':''}>—</option><option value="P" ${p.tipo==='P'?'selected':''}>P</option><option value="E" ${p.tipo==='E'?'selected':''}>E</option></select></td>`;
     }
@@ -1102,7 +1104,7 @@ function renderPersonnelTable(a, def){
 
 function addPersonnel(id){
   const a = getAudit(id);
-  a.personnel.push({ nombre:'', funcion:'', sector:'', tipo:'', capacitado:'' });
+  a.personnel.push({ dni:'', nombre:'', funcion:'', sector:'', tipo:'', capacitado:'' });
   upsertAudit(a);
   rerenderInPlace();
 }
@@ -1545,6 +1547,80 @@ function bindAutoSave(){
   document.querySelectorAll('[data-field],[data-dep],[data-p]').forEach(inp=>{
     inp.addEventListener('change', ()=>{ collectFieldInputs(); });
   });
+}
+
+// ============ BÚSQUEDA DE PERSONAL POR DNI (autocompletar + capacitado real) ============
+// Fuentes: Base de Personal (nombre/servicio/puesto) y Base de Capacitaciones RES
+// (solo capacitación "Gestión de Residuos Hospitalarios" — la única que cuenta como
+// "Capacitado: Sí" en estas auditorías, por decisión de Belén).
+const PERSONAL_SHEET_ID = '1P1XeJUFqSmYytbWxuhJjEVJLVmFYKvRtmal_c2BlEAA';
+const CAPACITACIONES_SHEET_ID = '1cvwkc9mOuMXvX16cdJ7Nl-n7buex3c74d4ZIJelo9Zk';
+let _personalCache = null; // [{dni, nombre, establecimiento, servicio, puesto}]
+let _capCache = null;      // [{dni, nombre, fecha, vencimiento, aprobo, estado}]
+
+function normDni(v){ return String(v||'').replace(/\D/g,''); }
+
+async function loadPersonalYCapacitaciones(){
+  if(_personalCache && _capCache) return;
+  await ensureGoogleAuth();
+  const [personalRes, capRes] = await Promise.all([
+    gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+PERSONAL_SHEET_ID+'/values/A1:G5000'),
+    gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+CAPACITACIONES_SHEET_ID+'/values/A1:F2000'),
+  ]);
+  const prows = (personalRes.values||[]).slice(1); // saltar encabezado
+  _personalCache = prows.filter(r=>r[0]).map(r=>({
+    dni: normDni(r[0]), nombre: r[1]||'', establecimiento: r[2]||'', servicio: r[3]||'', puesto: r[4]||'',
+  }));
+  const crows = (capRes.values||[]).slice(1);
+  _capCache = crows.filter(r=>r[0]).map(r=>({
+    dni: normDni(r[0]), nombre: r[1]||'', fecha: r[2]||'', vencimiento: r[3]||'', aprobo: r[4]||'', estado: r[5]||'',
+  }));
+}
+
+async function buscarPorDNI(pi){
+  collectFieldInputs();
+  const a = getAudit(state.auditId);
+  const p = a.personnel[pi];
+  const dni = normDni(p.dni);
+  if(!dni || dni.length<7){ toast('Ingresá un DNI válido antes de buscar.'); return; }
+  toast('Buscando...');
+  try{
+    await loadPersonalYCapacitaciones();
+  }catch(e){
+    toast('No se pudo conectar con las bases de Drive. Revisá tu conexión.');
+    return;
+  }
+  const matches = _personalCache.filter(x=>x.dni===dni);
+  if(matches.length){
+    const m = matches.find(x=>x.establecimiento==='Hospital María Humphreys') || matches[0];
+    p.nombre = m.nombre; p.sector = m.servicio; p.funcion = m.puesto;
+    if(matches.length>1) toast('Encontrado ('+matches.length+' registros con este DNI — se usó el más relevante). Revisá los datos.');
+  } else {
+    toast('DNI no encontrado en la Base de Personal. Cargá los datos a mano.');
+  }
+  // Capacitación específica: "Gestión de Residuos Hospitalarios"
+  const capRecords = _capCache.filter(x=>x.dni===dni).sort((x,y)=> (x.fecha<y.fecha?1:-1)); // más reciente primero
+  if(capRecords.length){
+    const latest = capRecords[0];
+    const aprobo = /s[ií]/i.test(latest.aprobo);
+    const hoy = todayISO();
+    const vencida = latest.vencimiento && latest.vencimiento < hoy;
+    if(aprobo && !vencida){
+      p.capacitado = 'si';
+      toast('Capacitado ✓ — Gestión de Residuos Hosp. vigente hasta '+fmtDate(latest.vencimiento));
+    } else if(vencida){
+      p.capacitado = 'no';
+      toast('Atención: capacitación vencida el '+fmtDate(latest.vencimiento)+'. Marcado "No".');
+    } else {
+      p.capacitado = 'no';
+      toast('Tiene un registro pero no aprobó / falta evidencia. Marcado "No".');
+    }
+  } else {
+    p.capacitado = '';
+    toast('Sin registro de capacitación en "Gestión de Residuos Hospitalarios".');
+  }
+  upsertAudit(a);
+  rerenderInPlace();
 }
 
 // ============ GOOGLE DRIVE / SHEETS INTEGRATION ============
