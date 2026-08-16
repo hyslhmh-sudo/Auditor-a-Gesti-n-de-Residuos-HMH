@@ -735,14 +735,14 @@ async function loadTableroData(){
 // dispositivo (celular, PC laboral, PC de casa) se esté mirando.
 function computeTableroStatsFromSheet(resumen, detalle, personal, depositos, fotos){
   const num = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
-  const byEntidad = { 'G':[], 'OPL-P':[], 'OPL-E':[], 'T':[] };
-  let countG=0, countOplP=0, countOplE=0, countT=0;
+  const byEntidad = { 'G':[], 'OPL-P':[], 'OPL-E':[], 'T':[], 'DOC':[] };
+  let countG=0, countOplP=0, countOplE=0, countT=0, countDoc=0;
   let totalCumple=0, totalNoCumple=0, totalNA=0;
   resumen.forEach(r=>{
     const entidad = r[2];
     const pct = num(r[10]);
     if(byEntidad[entidad] && pct!==null) byEntidad[entidad].push(pct);
-    if(entidad==='G') countG++; else if(entidad==='OPL-P') countOplP++; else if(entidad==='OPL-E') countOplE++; else if(entidad==='T') countT++;
+    if(entidad==='G') countG++; else if(entidad==='OPL-P') countOplP++; else if(entidad==='OPL-E') countOplE++; else if(entidad==='T') countT++; else if(entidad==='DOC') countDoc++;
     totalCumple += num(r[7])||0; totalNoCumple += num(r[8])||0; totalNA += num(r[9])||0;
   });
   const avg = arr => arr.length ? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length) : null;
@@ -773,8 +773,8 @@ function computeTableroStatsFromSheet(resumen, detalle, personal, depositos, fot
 
   return {
     totalAuditorias: resumen.length,
-    countG, countOplP, countOplE, countT,
-    pctGlobal: avg(allPct), pctG: avg(byEntidad['G']), pctOplP: avg(byEntidad['OPL-P']), pctOplE: avg(byEntidad['OPL-E']), pctT: avg(byEntidad['T']),
+    countG, countOplP, countOplE, countT, countDoc,
+    pctGlobal: avg(allPct), pctG: avg(byEntidad['G']), pctOplP: avg(byEntidad['OPL-P']), pctOplE: avg(byEntidad['OPL-E']), pctT: avg(byEntidad['T']), pctDoc: avg(byEntidad['DOC']),
     totalCumple, totalNoCumple, totalNA, topItems, topSecciones,
     personalTotal: personal.length, personalCapacitado, personalP, personalE,
     depTotal: depositos.length, depLimpiezaNo, depHorarioNo,
@@ -816,8 +816,9 @@ function renderTablero(){
     <div class="stat"><div class="n" style="color:${pctColor(s.pctOplP)}">${s.pctOplP===null?'—':s.pctOplP+'%'}</div><div class="l">OPL-P</div></div>
     <div class="stat"><div class="n" style="color:${pctColor(s.pctOplE)}">${s.pctOplE===null?'—':s.pctOplE+'%'}</div><div class="l">OPL-E</div></div>
     <div class="stat"><div class="n" style="color:${pctColor(s.pctT)}">${s.pctT===null?'—':s.pctT+'%'}</div><div class="l">T</div></div>
+    <div class="stat"><div class="n" style="color:${pctColor(s.pctDoc)}">${s.pctDoc===null?'—':s.pctDoc+'%'}</div><div class="l">DOC</div></div>
   </div>
-  <div class="intro-box" style="font-size:10.5px">G = Generador · OPL-P = Operario de limpieza (planta) · OPL-E = Operario de limpieza (empresa) · T = Transporte</div>
+  <div class="intro-box" style="font-size:10.5px">G = Generador · OPL-P = Operario de limpieza (planta) · OPL-E = Operario de limpieza (empresa) · T = Transporte · DOC = Documental</div>
 
   <div class="section-label" style="margin-top:18px">Auditorías registradas</div>
   <div class="stat-bar">
@@ -825,6 +826,7 @@ function renderTablero(){
     <div class="stat"><div class="n">${s.countOplP}</div><div class="l">OPL-P</div></div>
     <div class="stat"><div class="n">${s.countOplE}</div><div class="l">OPL-E</div></div>
     <div class="stat"><div class="n">${s.countT}</div><div class="l">T</div></div>
+    <div class="stat"><div class="n">${s.countDoc}</div><div class="l">DOC</div></div>
   </div>
 
   <div class="section-label" style="margin-top:18px">Hallazgos (ítems "No cumple")</div>
