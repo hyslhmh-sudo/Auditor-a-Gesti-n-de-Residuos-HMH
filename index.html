@@ -739,7 +739,12 @@ function renderTablero(){
     <div class="type-card" style="margin:12px 18px; display:flex; align-items:center; gap:10px;" onclick="loadTableroData(); rerenderInPlace();">
       ${icon('sync', 'color:var(--navy);margin-bottom:0')}
       <div class="t">Reintentar</div>
-    </div>`;
+    </div>
+    <div class="type-card" style="margin:12px 18px; display:flex; align-items:center; gap:10px;" onclick="reconectarDrive()">
+      ${icon('cloud_sync', 'color:var(--navy);margin-bottom:0')}
+      <div class="t">Reconectar Drive</div>
+    </div>
+    <div class="intro-box" style="margin:0 18px 18px; font-size:11px">Si "Reintentar" no funciona, probá "Reconectar Drive": olvida el archivo de Drive guardado en este celular y busca (o recrea) la planilla correcta. No borra tus auditorías en curso.</div>`;
     document.getElementById('app').innerHTML = html;
     return;
   }
@@ -857,6 +862,17 @@ function resetAllData(){
   localStorage.removeItem(DRIVE_CONFIG_KEY);
   toast('Todo borrado ✓');
   setTimeout(()=>{ state.view='home'; render(); }, 400);
+}
+
+function reconectarDrive(){
+  // Olvida SOLO el ID de la planilla/carpeta de Drive guardado en este celular
+  // (puede haber quedado apuntando a un archivo viejo/eliminado). No toca
+  // auditorías, informes ni contadores locales.
+  localStorage.removeItem(DRIVE_CONFIG_KEY);
+  toast('Reconectando con Drive...');
+  state.tableroError = null;
+  state.tableroData = null;
+  loadTableroData();
 }
 
 // ============ RENDER: FORM ============
