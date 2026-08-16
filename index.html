@@ -959,6 +959,12 @@ function renderForm(){
     });
   }
 
+  // Personnel (se carga antes del checklist para poder usarlo como referencia al responder)
+  b += `<div class="section-label" style="margin:18px 0 8px">Personal presente</div>`;
+  b += `<div class="intro-box" style="font-size:11px">Cargá primero al personal presente en el sector (podés buscarlo por DNI para autocompletar nombre, función y sector). Vas a poder usar estos datos como referencia al responder el checklist de capacitación, más abajo.</div>`;
+  b += renderPersonnelTable(a, def);
+  b += `<div class="add-row-btn" onclick="addPersonnel('${a.id}')">${icon('add_circle')} Agregar persona</div>`;
+
   // Checklist sections
   def.sections.forEach((sec,si)=>{
     const key = si;
@@ -1001,11 +1007,6 @@ function renderForm(){
     <div class="stat na"><div class="n">${st.na}</div><div class="l">N/A</div></div>
     <div class="stat pct"><div class="n">${st.pct===null?'—':st.pct+'%'}</div><div class="l">Cumplimiento</div></div>
   </div>`;
-
-  // Personnel
-  b += `<div class="section-label" style="margin:18px 0 8px">Personal presente</div>`;
-  b += renderPersonnelTable(a, def);
-  b += `<div class="add-row-btn" onclick="addPersonnel('${a.id}')">${icon('add_circle')} Agregar persona</div>`;
 
   // Photos
   b += `<div class="section-label" style="margin:18px 0 8px">Fotos generales (no asociadas a un ítem o depósito puntual) — se suben directo a Drive, no ocupan espacio en el celular</div>`;
