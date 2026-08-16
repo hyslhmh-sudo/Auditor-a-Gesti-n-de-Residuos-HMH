@@ -804,7 +804,7 @@ function renderTablero(){
     <div class="stat"><div class="n">${s.personalTotal}</div><div class="l">Total</div></div>
     <div class="stat"><div class="n">${s.personalP}</div><div class="l">Planta</div></div>
     <div class="stat"><div class="n">${s.personalE}</div><div class="l">Empresa</div></div>
-    <div class="stat pct"><div class="n">${s.personalTotal?Math.round(s.personalCapacitado/s.personalTotal*100)+'%':'—'}</div><div class="l">Capacitado</div></div>
+    <div class="stat pct"><div class="n">${s.personalTotal?Math.round(s.personalCapacitado/s.personalTotal*100)+'%':'—'}</div><div class="l">Capacitado en Gest. Residuos</div></div>
   </div>`;
 
   if(s.depTotal>0){
@@ -1079,8 +1079,8 @@ function toggleFotos(key){
 
 function renderPersonnelTable(a, def){
   const cols = def.personnel.tipo
-    ? ['DNI','Tipo','Nombre y Apellido','Función','Sector','Capacitado']
-    : ['DNI','Nombre y Apellido','Función','Sector','Capacitado'];
+    ? ['DNI','Tipo','Nombre y Apellido','Función','Sector','Capacitado en Gest. Residuos']
+    : ['DNI','Nombre y Apellido','Función','Sector','Capacitado en Gest. Residuos'];
   let html = `<div class="ptable-wrap"><table class="personnel-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}<th></th></tr></thead><tbody>`;
   a.personnel.forEach((p,pi)=>{
     html += '<tr>';
@@ -1442,7 +1442,7 @@ function doPrint(id){
   h += pTable(['Cumple','No cumple','N/A','% cumplimiento'], [[st.ok, st.bad, st.na, st.pct===null?'—':st.pct+'%']]);
 
   h += `<div class="p-h2">Personal presente</div>`;
-  const pcols = def.personnel.tipo ? ['Tipo','Nombre','Función','Sector','Capacitado'] : ['Nombre','Función','Sector','Capacitado'];
+  const pcols = def.personnel.tipo ? ['Tipo','Nombre','Función','Sector','Capacitado en Gest. Residuos'] : ['Nombre','Función','Sector','Capacitado en Gest. Residuos'];
   h += pTable(pcols, a.personnel.map(p=>{
     const row = [];
     if(def.personnel.tipo) row.push(p.tipo||'—');
@@ -1508,7 +1508,7 @@ function doPrintInforme(id){
     const entBase = a.type==='gen' ? 'G' : a.type==='trans' ? 'T' : (a.tipoPersonal==='E'?'OPL-E':'OPL-P');
     (a.personnel||[]).forEach(p=> prows.push([entBase, p.nombre||'—', p.funcion||'—', p.sector||'—', p.capacitado==='si'?'Sí':p.capacitado==='no'?'No':'—']));
   });
-  h += pTable(['Entidad','Nombre','Función','Sector','Capacitado'], prows);
+  h += pTable(['Entidad','Nombre','Función','Sector','Capacitado en Gest. Residuos'], prows);
 
   h += `<div class="p-h2">Firmas</div><div class="p-fields">
     <div><b>Elabora — HySL</b><br>Firma: _______________</div>
@@ -1725,7 +1725,7 @@ const SHEET_TABS = {
   Resumen:   ['N.º Auditoría','Tipo Doc','Entidad','Fecha','Servicio/Empresa','Tipo Personal (P/E)','Auditor','Cumple','No Cumple','N/A','% Cumplimiento','Sincronizado'],
   Detalle:   ['N.º Auditoría','Tipo Doc','Entidad','Fecha','Sección','Ítem','Resultado','Observación','Sincronizado'],
   Fotos:     ['N.º Auditoría','Fecha','Sector/Ítem','Archivo','Link Drive'],
-  Personal:  ['N.º Auditoría','Tipo Doc','Fecha','Tipo (P/E)','Nombre y Apellido','Función','Sector','Capacitado','Sincronizado'],
+  Personal:  ['N.º Auditoría','Tipo Doc','Fecha','Tipo (P/E)','Nombre y Apellido','Función','Sector','Capacitado en Gest. Residuos','Sincronizado'],
   Depositos: ['N.º Auditoría','Fecha','Planta','Depósito','Sectores','Limpieza','Horario','Observaciones','Sincronizado'],
 };
 
