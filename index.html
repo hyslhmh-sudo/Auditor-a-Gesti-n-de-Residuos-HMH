@@ -674,7 +674,7 @@ async function loadTableroData(){
     state.tableroError = null;
   } catch(e){
     console.error(e);
-    state.tableroError = 'No se pudo cargar el tablero desde Drive. Revisá tu conexión y volvé a intentar.';
+    state.tableroError = 'No se pudo cargar el tablero — '+(e && e.message ? e.message.slice(0,160) : 'error desconocido');
   }
   if(state.view==='tablero') render({preserveScroll:true});
 }
@@ -1947,7 +1947,7 @@ async function syncAuditToSheet(auditId){
     rerenderInPlace();
   } catch(e){
     console.error(e);
-    toast('No se pudo sincronizar. Revisá tu conexión.');
+    toast('No se pudo sincronizar — '+(e && e.message ? e.message.slice(0,160) : 'error desconocido'));
   }
 }
 
