@@ -2099,9 +2099,7 @@ function removePhoto(auditId, idx){
 }
 
 function openSheetDashboard(){
-  const cfg = getDriveConfig();
-  if(cfg && cfg.sheetUrl){ window.open(cfg.sheetUrl, '_blank'); }
-  else { toast('Todavía no sincronizaste ninguna auditoría'); }
+  window.open('https://docs.google.com/spreadsheets/d/'+CANONICAL_SHEET_ID+'/edit', '_blank');
 }
 
 render();
