@@ -1553,13 +1553,18 @@ function bindAutoSave(){
 }
 
 // ============ BÚSQUEDA DE PERSONAL POR DNI (autocompletar + capacitado real) ============
-// Fuentes: Base de Personal (nombre/servicio/puesto) y Base de Capacitaciones RES
-// (solo capacitación "Gestión de Residuos Hospitalarios" — la única que cuenta como
-// "Capacitado: Sí" en estas auditorías, por decisión de Belén).
-const PERSONAL_SHEET_ID = '1P1XeJUFqSmYytbWxuhJjEVJLVmFYKvRtmal_c2BlEAA';
-const CAPACITACIONES_SHEET_ID = '1cvwkc9mOuMXvX16cdJ7Nl-n7buex3c74d4ZIJelo9Zk';
-let _personalCache = null; // [{dni, nombre, establecimiento, servicio, puesto}]
-let _capCache = null;      // [{dni, nombre, fecha, vencimiento, aprobo, estado}]
+// Fuente única: "Plantilla de registro de Capacitaciones 2026" (planilla operativa
+// donde Belén carga todo día a día — NUNCA se escribe en esta planilla desde la app,
+// solo se lee).
+//   - Personal (nombre/establecimiento/servicio/puesto): pestaña 02_BASE_PERSONAS,
+//     que es una fórmula viva (SORT+UNIQUE+FILTER sobre 01_CARGA_UNICA) — siempre
+//     está al día, no hace falta sincronizar nada aparte.
+//   - Capacitación "Gestión de Residuos Hospitalarios": pestaña 01_CARGA_UNICA
+//     (fila por fila, para poder tomar el registro más reciente por persona).
+const CAPACITACIONES_WORKBOOK_ID = '1FYCviD31RpbYmuOSQqKFA_JHArY5yfR6K69PRarGP-4';
+const TEMA_RESIDUOS = 'Gestión de Residuos Hospitalarios';
+let _personalCache = null; // [{dni, nombre, establecimiento, servicio, puesto, tipoVinculo, empresa}]
+let _capCache = null;      // [{dni, tema, fecha, aprobo, vencimiento, estado, idRegistro}]
 
 function normDni(v){ return String(v||'').replace(/\D/g,''); }
 
@@ -1567,16 +1572,22 @@ async function loadPersonalYCapacitaciones(){
   if(_personalCache && _capCache) return;
   await ensureGoogleAuth();
   const [personalRes, capRes] = await Promise.all([
-    gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+PERSONAL_SHEET_ID+'/values/A1:G5000'),
-    gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+CAPACITACIONES_SHEET_ID+'/values/A1:F2000'),
+    gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+CAPACITACIONES_WORKBOOK_ID+"/values/'02_BASE_PERSONAS'!A1:G6000"),
+    gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+CAPACITACIONES_WORKBOOK_ID+"/values/'01_CARGA_UNICA'!A1:P6000"),
   ]);
-  const prows = (personalRes.values||[]).slice(1); // saltar encabezado
-  _personalCache = prows.filter(r=>r[0]).map(r=>({
-    dni: normDni(r[0]), nombre: r[1]||'', establecimiento: r[2]||'', servicio: r[3]||'', puesto: r[4]||'',
+  // 02_BASE_PERSONAS tiene filas de título/nota arriba de los datos reales.
+  // Identificamos filas de datos reales por tener un DNI numérico de 7+ dígitos en col A.
+  const prows = (personalRes.values||[]);
+  _personalCache = prows.filter(r=>normDni(r[0]).length>=7).map(r=>({
+    dni: normDni(r[0]), nombre: r[1]||'', establecimiento: r[2]||'', servicio: r[3]||'',
+    puesto: r[4]||'', tipoVinculo: r[5]||'', empresa: r[6]||'',
   }));
-  const crows = (capRes.values||[]).slice(1);
-  _capCache = crows.filter(r=>r[0]).map(r=>({
-    dni: normDni(r[0]), nombre: r[1]||'', fecha: r[2]||'', vencimiento: r[3]||'', aprobo: r[4]||'', estado: r[5]||'',
+  // 01_CARGA_UNICA también tiene varias filas de título/nota. Identificamos filas de
+  // datos reales por ID_REGISTRO con formato "CAP-#####" en col A.
+  const crows = (capRes.values||[]);
+  _capCache = crows.filter(r=>/^CAP-\d+$/.test(r[0]||'')).map(r=>({
+    idRegistro: r[0]||'', fecha: r[1]||'', tema: r[2]||'', dni: normDni(r[3]),
+    nombre: r[4]||'', aprobo: r[9]||'', vencimiento: r[11]||'', estado: r[12]||'',
   }));
 }
 
@@ -1590,33 +1601,46 @@ async function buscarPorDNI(pi){
   try{
     await loadPersonalYCapacitaciones();
   }catch(e){
-    toast('No se pudo conectar con las bases de Drive. Revisá tu conexión.');
+    toast('No se pudo conectar con la Plantilla de registro de Capacitaciones. Revisá tu conexión.');
     return;
   }
   const matches = _personalCache.filter(x=>x.dni===dni);
   if(matches.length){
-    const m = matches.find(x=>x.establecimiento==='Hospital María Humphreys') || matches[0];
+    const m = matches.find(x=>x.establecimiento==='Hospital María Humphreys' || x.establecimiento==='HMH') || matches[0];
     p.nombre = m.nombre; p.sector = m.servicio; p.funcion = m.puesto;
     if(matches.length>1) toast('Encontrado ('+matches.length+' registros con este DNI — se usó el más relevante). Revisá los datos.');
   } else {
     toast('DNI no encontrado en la Base de Personal. Cargá los datos a mano.');
   }
-  // Capacitación específica: "Gestión de Residuos Hospitalarios"
-  const capRecords = _capCache.filter(x=>x.dni===dni).sort((x,y)=> (x.fecha<y.fecha?1:-1)); // más reciente primero
+  // Capacitación específica: "Gestión de Residuos Hospitalarios" — se toma el
+  // registro más reciente por fecha. Se mira APROBO y FECHA_VENCIMIENTO directo,
+  // NO el campo ESTADO_REGISTRO: ese campo también marca "REVISAR CAMPOS" cuando
+  // falta un dato administrativo (ej. TIPO_VINCULO), sin relación con si la
+  // persona aprobó o no — usarlo directo generaría falsos "No capacitado".
+  const capRecords = _capCache
+    .filter(x=>x.dni===dni && x.tema===TEMA_RESIDUOS)
+    .sort((x,y)=> (x.fecha<y.fecha?1:-1)); // más reciente primero
   if(capRecords.length){
     const latest = capRecords[0];
-    const aprobo = /s[ií]/i.test(latest.aprobo);
+    const aprobo = /^s[ií]$/i.test((latest.aprobo||'').trim());
+    const noAplica = /no aplica/i.test(latest.aprobo||'');
     const hoy = todayISO();
     const vencida = latest.vencimiento && latest.vencimiento < hoy;
+    const revisarCampos = /REVISAR CAMPOS/i.test(latest.estado||'');
     if(aprobo && !vencida){
       p.capacitado = 'si';
-      toast('Capacitado ✓ — Gestión de Residuos Hosp. vigente hasta '+fmtDate(latest.vencimiento));
-    } else if(vencida){
+      toast('Capacitado ✓ — Gestión de Residuos Hosp. vigente hasta '+fmtDate(latest.vencimiento)
+        +(revisarCampos ? ' — ⚠ este registro tiene datos incompletos en la planilla, verificalo.' : ''));
+    } else if(aprobo && vencida){
       p.capacitado = 'no';
       toast('Atención: capacitación vencida el '+fmtDate(latest.vencimiento)+'. Marcado "No".');
+    } else if(noAplica || !latest.aprobo){
+      p.capacitado = '';
+      toast('Hay un registro pero sin resultado de aprobación cargado. Revisalo y completá "Capacitado" a mano.');
     } else {
       p.capacitado = 'no';
-      toast('Tiene un registro pero no aprobó / falta evidencia. Marcado "No".');
+      toast('No aprobó la evaluación. Marcado "No".'
+        +(revisarCampos ? ' ⚠ este registro además tiene datos incompletos en la planilla.' : ''));
     }
   } else {
     p.capacitado = '';
