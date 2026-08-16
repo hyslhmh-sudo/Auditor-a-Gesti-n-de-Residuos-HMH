@@ -1847,6 +1847,7 @@ async function ensureTableroTab(sheetId){
     ['Auditorías — Operarios de limpieza, planta (OPL-P)', '=COUNTIF(Resumen!C2:C;"OPL-P")'],
     ['Auditorías — Operarios de limpieza, empresa (OPL-E)', '=COUNTIF(Resumen!C2:C;"OPL-E")'],
     ['Auditorías — Transporte (T)', '=COUNTIF(Resumen!C2:C;"T")'],
+    ['Auditorías — Documental (DOC)', '=COUNTIF(Resumen!C2:C;"DOC")'],
     ['', ''],
     ['% CUMPLIMIENTO', ''],
     ['% cumplimiento global', '=IFERROR(ROUND(AVERAGE(Resumen!K2:K);1)&"%";"—")'],
@@ -1854,6 +1855,7 @@ async function ensureTableroTab(sheetId){
     ['% cumplimiento — Operarios planta (OPL-P)', '=IFERROR(ROUND(AVERAGEIF(Resumen!C2:C;"OPL-P";Resumen!K2:K);1)&"%";"—")'],
     ['% cumplimiento — Operarios empresa (OPL-E)', '=IFERROR(ROUND(AVERAGEIF(Resumen!C2:C;"OPL-E";Resumen!K2:K);1)&"%";"—")'],
     ['% cumplimiento — Transporte (T)', '=IFERROR(ROUND(AVERAGEIF(Resumen!C2:C;"T";Resumen!K2:K);1)&"%";"—")'],
+    ['% cumplimiento — Documental (DOC)', '=IFERROR(ROUND(AVERAGEIF(Resumen!C2:C;"DOC";Resumen!K2:K);1)&"%";"—")'],
     ['', ''],
     ['HALLAZGOS (NO CONFORMIDADES)', ''],
     ['Total de hallazgos registrados', '=SUM(Resumen!I2:I)'],
@@ -1886,7 +1888,7 @@ async function ensureTableroTab(sheetId){
   });
 
   // Formato: título y encabezados de sección en negrita, columna A más ancha
-  const sectionRows = [0,3,10,17,38,44,49];
+  const sectionRows = [0,3,11,19,40,46,51];
   await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+':batchUpdate', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ requests: [
