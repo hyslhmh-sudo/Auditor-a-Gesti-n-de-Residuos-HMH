@@ -1909,54 +1909,37 @@ async function ensureTableroTab(sheetId){
   });
 }
 
+// ID fijo de la ÚNICA planilla de Tablero real (dueña: belunchyy444@gmail.com,
+// compartida como Editor con hysl.hmh@gmail.com). Se usa siempre este ID en vez de
+// buscar por nombre, porque la búsqueda por nombre generó archivos duplicados en
+// más de una ocasión (delays de indexación de Drive entre cuentas).
+const CANONICAL_SHEET_ID = '1nO1qt6yGzptlXmh_TmixK9izjPXF5FhibHznK1RjY8k';
+
 async function ensureDriveSetup(){
   let cfg = getDriveConfig();
-  if(cfg && cfg.folderId && cfg.sheetId){
+  if(cfg && cfg.folderId && cfg.sheetId === CANONICAL_SHEET_ID){
     await ensureSheetTabs(cfg.sheetId);
     return cfg;
   }
 
-  // Config local perdida (otro dispositivo, caché borrada, reinstalación, etc.):
-  // buscamos primero en Drive antes de crear nada, para no generar duplicados.
-  toast('Buscando configuración de Drive existente...');
+  // Config local perdida, o apuntando a un ID viejo/incorrecto: se reconstruye,
+  // pero el sheetId SIEMPRE es el fijo — nunca se busca por nombre ni se crea uno nuevo.
+  toast('Conectando con la planilla institucional...');
   let folder = await findExistingDriveFile('Fotos Auditorías HMH', 'application/vnd.google-apps.folder');
-  let sheetFile = await findExistingDriveFile('Auditorías Residuos HMH — Tablero', 'application/vnd.google-apps.spreadsheet');
-  let sheetId = sheetFile ? sheetFile.id : null;
-  const sheetAlreadyExisted = !!sheetFile;
+  let sheetId = CANONICAL_SHEET_ID;
 
   if(!folder){
-    toast('Configurando Drive por primera vez...');
+    toast('Configurando carpeta de fotos por primera vez...');
     folder = await gFetch('https://www.googleapis.com/drive/v3/files', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ name:'Fotos Auditorías HMH', mimeType:'application/vnd.google-apps.folder' }),
     });
   }
-  if(!sheetId){
-    toast('Configurando Drive por primera vez...');
-    const newSheet = await gFetch('https://sheets.googleapis.com/v4/spreadsheets', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        properties: { title: 'Auditorías Residuos HMH — Tablero' },
-        sheets: Object.keys(SHEET_TABS).map(title=>({ properties: { title } })),
-      }),
-    });
-    sheetId = newSheet.spreadsheetId;
-    for(const title of Object.keys(SHEET_TABS)){
-      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId+'/values/'+encodeURIComponent(title)+'!A1:append?valueInputOption=USER_ENTERED', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ values: [SHEET_TABS[title]] }),
-      });
-    }
-    await ensureTableroTab(sheetId);
-    _sheetTabsEnsured = true;
-  } else {
-    // Planilla existente (recién encontrada o ya conocida): aseguramos que tenga todas las pestañas necesarias.
-    await ensureSheetTabs(sheetId);
-  }
+  await ensureSheetTabs(sheetId);
 
   cfg = { folderId: folder.id, sheetId: sheetId, sheetUrl: 'https://docs.google.com/spreadsheets/d/'+sheetId+'/edit' };
   saveDriveConfig(cfg);
-  toast(sheetAlreadyExisted ? 'Drive reconectado ✓' : 'Drive configurado ✓');
+  toast('Drive conectado ✓');
   return cfg;
 }
 
