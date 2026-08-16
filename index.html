@@ -420,6 +420,56 @@ trans: {
   firmas: ['Auditor/a (HySL)', 'Representante de la empresa tercerizada'],
 },
 
+doc: {
+  code: 'AUD-RES-DOC-001',
+  title: 'Auditoría Documental',
+  subtitle: 'Habilitaciones, Contratos, Manifiestos y Registros',
+  icon: 'description',
+  color: '#7A5C9E',
+  intro: 'Verifica el respaldo documental que sostiene la gestión de residuos hospitalarios: habilitaciones y contrato del transportista/gestor externo (Impeesa — Y1 y Y3), manifiestos y trazabilidad, planes/manual vigente, capacitación, seguimiento de auditorías anteriores y registro ambiental. No evalúa la operación física en terreno — ver AUD-RES-GEN-001, AUD-RES-OPL-001 y AUD-RES-TRANS-001 para eso. Periodicidad recomendada: semestral o anual.',
+  fields: [
+    { key: 'fecha', label: 'Fecha', type: 'date' },
+    { key: 'numero', label: 'N.º de auditoría', type: 'text', readonly: true },
+    { key: 'periodoDesde', label: 'Período auditado — desde', type: 'date' },
+    { key: 'periodoHasta', label: 'Período auditado — hasta', type: 'date' },
+    { key: 'auditor', label: 'Auditor/a responsable (HySL)', type: 'text', full: true },
+  ],
+  sections: [
+    { title: 'Habilitaciones y contrato — Impeesa', note: 'Impeesa es la única empresa habilitada como transportista y operador/gestor de residuos patogénicos (Y1) y farmacéuticos (Y3) del HMH — un mismo trámite y contrato cubre ambos roles y corrientes. No corresponde a Star Union (empresa de limpieza).', items: [
+      'Impeesa cuenta con habilitación vigente como transportista de residuos patogénicos (Y1) y residuos farmacéuticos (Y3) ante la autoridad competente.',
+      'Impeesa cuenta con habilitación vigente como operador/gestor (tratamiento y/o disposición final) de residuos patogénicos (Y1) y residuos farmacéuticos (Y3) ante la autoridad competente.',
+      'El contrato vigente con Impeesa para el servicio de transporte y gestión (Y1 y Y3) está disponible y firmado.',
+      'Impeesa cuenta con seguro de responsabilidad civil/ambiental vigente para la actividad.',
+    ]},
+    { title: 'Manifiestos, trazabilidad y registros operativos', items: [
+      'Los manifiestos de retiro del período están completos, firmados y archivados.',
+      'Los certificados de tratamiento y/o disposición final del período fueron recibidos y archivados.',
+      'El libro de actas donde se registra manuscritamente cada retiro está completo, actualizado y coincide con los manifiestos del período.',
+      'El checklist de limpieza por turno del depósito externo está completo y actualizado.',
+      'Los registros de limpieza y acciones del circuito de transporte (depósitos intermedios, ascensor de traslado y depósito externo) están completos y actualizados.',
+      'El libro de registro de accidentes e incidentes con residuos peligrosos está completo, actualizado y sin hojas faltantes.',
+      'Existe registro de incidencias en el retiro del período (demoras, rechazos, faltantes) — pendiente de implementar el formulario correspondiente; completar solo si ya existe.',
+    ]},
+    { title: 'Manual vigente', items: [
+      'El Manual de Gestión de Residuos Hospitalarios (MAN-RES-001) — incluyendo el Plan de Contingencia por Corte de Residuos Patológicos — está vigente y accesible para el personal.',
+      'La última revisión del Manual se realizó dentro del plazo establecido por HySL.',
+    ]},
+    { title: 'Registros de capacitación', items: [
+      'El porcentaje de personal capacitado en Gestión de Residuos Hospitalarios está actualizado en la base de HySL.',
+      'Se identificaron y documentaron los desvíos (personal sin capacitar o con capacitación vencida) del período.',
+    ]},
+    { title: 'Seguimiento de auditorías anteriores', items: [
+      'Los informes de auditoría interna previos (AUD-RES-002) del período anterior están archivados y disponibles.',
+      'El plan de acción correctivo del período anterior tiene su estado (Pendiente / En curso / Cerrada) actualizado y documentado.',
+    ]},
+    { title: 'Registro ante autoridad ambiental', items: [
+      'El registro y/o declaración jurada ante la autoridad ambiental provincial (Chubut) está vigente.',
+    ]},
+  ],
+  personnel: false,
+  firmas: ['Auditor/a (HySL)', 'Responsable de Gestión / Compras (referente contrato Impeesa)'],
+},
+
 };
 
 const REFERENCIAS = {
@@ -437,6 +487,7 @@ const REFERENCIAS = {
     ['OPL-P', 'Operario de limpieza de planta hospitalaria (1.º tramo, personal propio).'],
     ['OPL-E', 'Operario de limpieza de la empresa tercerizada (1.º tramo, personal de la empresa).'],
     ['T', 'Servicio de transporte y depósitos — empresa tercerizada (Star Union).'],
+    ['DOC', 'Auditoría documental — habilitaciones, contratos, manifiestos y registros de gestión de residuos.'],
   ],
   clasificacion: [
     ['Leve', 'No representa riesgo inmediato; requiere corrección administrativa.'],
@@ -554,7 +605,7 @@ function renderHome(){
   <div class="tealstrip"></div>
   <div class="section-label" style="margin-top:22px">Nueva auditoría</div>
   <div class="type-grid">
-    ${['gen','opl','trans'].map(t=>{
+    ${['gen','opl','trans','doc'].map(t=>{
       const d = FORM_DEFS[t];
       return `<div class="type-card" onclick="startNewAudit('${t}')">
         ${icon(d.icon, 'color:'+d.color)}
@@ -741,7 +792,7 @@ function renderTablero(){
       <div class="t">Reintentar</div>
     </div>
     <div class="type-card" style="margin:12px 18px; display:flex; align-items:center; gap:10px;" onclick="reconectarDrive()">
-      ${icon('cloud_sync', 'color:var(--navy);margin-bottom:0')}
+      ${icon('sync', 'color:var(--navy);margin-bottom:0')}
       <div class="t">Reconectar Drive</div>
     </div>
     <div class="intro-box" style="margin:0 18px 18px; font-size:11px">Si "Reintentar" no funciona, probá "Reconectar Drive": olvida el archivo de Drive guardado en este celular y busca (o recrea) la planilla correcta. No borra tus auditorías en curso.</div>`;
@@ -976,10 +1027,14 @@ function renderForm(){
   }
 
   // Personnel (se carga antes del checklist para poder usarlo como referencia al responder)
-  b += `<div class="section-label" style="margin:18px 0 8px">Personal presente</div>`;
-  b += `<div class="intro-box" style="font-size:11px">Cargá primero al personal presente en el sector (podés buscarlo por DNI para autocompletar nombre, función y sector). Vas a poder usar estos datos como referencia al responder el checklist de capacitación, más abajo.</div>`;
-  b += renderPersonnelTable(a, def);
-  b += `<div class="add-row-btn" onclick="addPersonnel('${a.id}')">${icon('add_circle')} Agregar persona</div>`;
+  // Condicional: para auditorías puramente documentales (sin relevamiento de personal en terreno)
+  // se puede omitir con personnel:false en la definición del tipo.
+  if(def.personnel !== false){
+    b += `<div class="section-label" style="margin:18px 0 8px">Personal presente</div>`;
+    b += `<div class="intro-box" style="font-size:11px">Cargá primero al personal presente en el sector (podés buscarlo por DNI para autocompletar nombre, función y sector). Vas a poder usar estos datos como referencia al responder el checklist de capacitación, más abajo.</div>`;
+    b += renderPersonnelTable(a, def);
+    b += `<div class="add-row-btn" onclick="addPersonnel('${a.id}')">${icon('add_circle')} Agregar persona</div>`;
+  }
 
   // Checklist sections
   def.sections.forEach((sec,si)=>{
@@ -1271,6 +1326,7 @@ function computeInformeAgg(inf){
     mp: aggFor('opl', a=>a.tipoPersonal==='P'),
     me: aggFor('opl', a=>a.tipoPersonal==='E'),
     trans: aggFor('trans'),
+    doc: aggFor('doc'),
     included,
   };
 }
@@ -1294,7 +1350,7 @@ function renderInforme(){
 
   const b = document.getElementById('infBody');
   let s = '';
-  s += `<div class="intro-box">${agg.included.length} auditorías incluidas · Generador: ${agg.gen.count} · Operario Planta: ${agg.mp.count} · Operario Empresa: ${agg.me.count} · Transporte: ${agg.trans.count}</div>`;
+  s += `<div class="intro-box">${agg.included.length} auditorías incluidas · Generador: ${agg.gen.count} · Operario Planta: ${agg.mp.count} · Operario Empresa: ${agg.me.count} · Transporte: ${agg.trans.count} · Documental: ${agg.doc.count}</div>`;
 
   function aggTable(title, a){
     let h = `<div class="section-label" style="margin:16px 0 6px">${title}</div>`;
@@ -1311,6 +1367,7 @@ function renderInforme(){
   s += aggTable('4.2 Operarios de Limpieza — Planta (OPL-P)', agg.mp);
   s += aggTable('4.3 Operarios de Limpieza — Empresa (OPL-E)', agg.me);
   s += aggTable('4.4 Transporte — Empresa', agg.trans);
+  s += aggTable('4.5 Auditoría Documental', agg.doc);
 
   const diff = (agg.mp.pct!==null && agg.me.pct!==null) ? (agg.me.pct-agg.mp.pct) : null;
   s += `<div class="section-label" style="margin:16px 0 6px">4.5 Comparativo Planta vs. Empresa</div>
@@ -1503,9 +1560,10 @@ function doPrintInforme(id){
   aggBlock('4.2 Operarios de Limpieza — Planta (OPL-P)', agg.mp);
   aggBlock('4.3 Operarios de Limpieza — Empresa (OPL-E)', agg.me);
   aggBlock('4.4 Transporte — Empresa', agg.trans);
+  aggBlock('4.5 Auditoría Documental', agg.doc);
 
   const diff = (agg.mp.pct!==null && agg.me.pct!==null) ? (agg.me.pct-agg.mp.pct) : null;
-  h += `<div class="p-h2">4.5 Comparativo Planta vs. Empresa</div>`;
+  h += `<div class="p-h2">4.6 Comparativo Planta vs. Empresa</div>`;
   h += pTable(['Indicador','OPL-P (Planta)','OPL-E (Empresa)','Diferencia'], [['% cumplimiento — operarios de limpieza', agg.mp.pct===null?'—':agg.mp.pct+'%', agg.me.pct===null?'—':agg.me.pct+'%', diff===null?'—':(diff>0?'+':'')+diff+'pp']]);
 
   h += `<div class="p-h2">Hallazgos y no conformidades</div>`;
@@ -1521,7 +1579,7 @@ function doPrintInforme(id){
   let prows = [];
   agg.included.forEach(a=>{
     const def = FORM_DEFS[a.type];
-    const entBase = a.type==='gen' ? 'G' : a.type==='trans' ? 'T' : (a.tipoPersonal==='E'?'OPL-E':'OPL-P');
+    const entBase = entidadFor(a, def);
     (a.personnel||[]).forEach(p=> prows.push([entBase, p.nombre||'—', p.funcion||'—', p.sector||'—', p.capacitado==='si'?'Sí':p.capacitado==='no'?'No':'—']));
   });
   h += pTable(['Entidad','Nombre','Función','Sector','Capacitado en Gest. Residuos'], prows);
@@ -1734,6 +1792,7 @@ async function findExistingDriveFile(name, mimeType){
 function entidadFor(a, def){
   if(a.type==='gen') return 'G';
   if(a.type==='trans') return 'T';
+  if(a.type==='doc') return 'DOC';
   return a.tipoPersonal==='E' ? 'OPL-E' : 'OPL-P';
 }
 
