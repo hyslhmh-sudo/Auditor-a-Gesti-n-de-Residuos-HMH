@@ -1972,38 +1972,33 @@ async function syncAuditToSheet(auditId){
     const label = a.fields.servicio || a.fields.empresa || def.title;
     const now = new Date().toLocaleString('es-AR');
     const entidad = entidadFor(a, def);
-    const row = [a.fields.numero, def.code, entidad, fmtDate(a.fields.fecha), label, a.tipoPersonal||'', a.fields.auditor||'', st.ok, st.bad, st.na, st.pct===null?'':st.pct, now];
-    await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Resumen!A1:append?valueInputOption=USER_ENTERED', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values:[row] }),
-    });
+    const numero = a.fields.numero;
+
+    const row = [numero, def.code, entidad, fmtDate(a.fields.fecha), label, a.tipoPersonal||'', a.fields.auditor||'', st.ok, st.bad, st.na, st.pct===null?'':st.pct, now];
+
     const detailRows = [];
     def.sections.forEach((sec,si)=> sec.items.forEach((it,ii)=>{
       const cur = a.items[si+'_'+ii];
-      if(cur.v) detailRows.push([a.fields.numero, def.code, entidad, fmtDate(a.fields.fecha), sec.title, it, valLabel(cur.v), cur.obs||'', now]);
+      if(cur.v) detailRows.push([numero, def.code, entidad, fmtDate(a.fields.fecha), sec.title, it, valLabel(cur.v), cur.obs||'', now]);
     }));
-    if(detailRows.length){
-      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Detalle!A1:append?valueInputOption=USER_ENTERED', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: detailRows }),
-      });
-    }
+
     const personnelRows = (a.personnel||[]).filter(p=>p.nombre).map(p=>[
-      a.fields.numero, def.code, fmtDate(a.fields.fecha), p.tipo||'', p.nombre||'', p.funcion||'', p.sector||'',
+      numero, def.code, fmtDate(a.fields.fecha), p.tipo||'', p.nombre||'', p.funcion||'', p.sector||'',
       p.capacitado==='si'?'Sí':p.capacitado==='no'?'No':'', now
     ]);
-    if(personnelRows.length){
-      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Personal!A1:append?valueInputOption=USER_ENTERED', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: personnelRows }),
-      });
-    }
-    if(def.depositos && a.depositos){
-      const depositoRows = a.depositos.map(d=>[
-        a.fields.numero, fmtDate(a.fields.fecha), d.planta||'', d.nombre, d.sectores,
-        d.limpieza==='si'?'Sí':d.limpieza==='no'?'No':'', d.horario==='si'?'Sí':d.horario==='no'?'No':'', d.obs||'', now
-      ]);
-      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/Depositos!A1:append?valueInputOption=USER_ENTERED', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: depositoRows }),
-      });
-    }
+
+    const depositoRows = (def.depositos && a.depositos) ? a.depositos.map(d=>[
+      numero, fmtDate(a.fields.fecha), d.planta||'', d.nombre, d.sectores,
+      d.limpieza==='si'?'Sí':d.limpieza==='no'?'No':'', d.horario==='si'?'Sí':d.horario==='no'?'No':'', d.obs||'', now
+    ]) : [];
+
+    // Re-sincronizar la misma auditoría reemplaza sus filas anteriores en cada pestaña
+    // (en vez de duplicarlas), buscando por N.º de auditoría en la columna A.
+    await replaceAuditRowsInTab(cfg, 'Resumen', numero, [row]);
+    await replaceAuditRowsInTab(cfg, 'Detalle', numero, detailRows);
+    await replaceAuditRowsInTab(cfg, 'Personal', numero, personnelRows);
+    if(def.depositos) await replaceAuditRowsInTab(cfg, 'Depositos', numero, depositoRows);
+
     a.lastSync = Date.now();
     upsertAudit(a);
     toast('Sincronizado con Drive ✓');
@@ -2011,6 +2006,23 @@ async function syncAuditToSheet(auditId){
   } catch(e){
     console.error(e);
     toast('No se pudo sincronizar — '+(e && e.message ? e.message.slice(0,160) : 'error desconocido'));
+  }
+}
+
+// Reemplaza, dentro de una pestaña, todas las filas de una auditoría (identificada por
+// N.º en la columna A) por las filas nuevas — así sincronizar dos veces la misma
+// auditoría actualiza en vez de duplicar. Trae todo lo existente, saca las filas de
+// este N.º, agrega las nuevas al final, y reescribe la pestaña completa (desde la fila 2).
+async function replaceAuditRowsInTab(cfg, tabName, numero, newRows){
+  const range = encodeURIComponent(tabName) + '!A2:Z5000';
+  const res = await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/'+range);
+  const existing = (res.values || []).filter(r => r[0] !== numero);
+  const combined = existing.concat(newRows);
+  await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/'+range+':clear', { method:'POST' });
+  if(combined.length){
+    await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/'+encodeURIComponent(tabName)+'!A2?valueInputOption=USER_ENTERED', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: combined }),
+    });
   }
 }
 
