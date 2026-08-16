@@ -1653,8 +1653,8 @@ async function buscarPorDNI(pi){
         +(revisarCampos ? ' ⚠ este registro además tiene datos incompletos en la planilla.' : ''));
     }
   } else {
-    p.capacitado = '';
-    toast('Sin registro de capacitación en "Gestión de Residuos Hospitalarios".');
+    p.capacitado = 'no';
+    toast('Sin registro de capacitación en "Gestión de Residuos Hospitalarios". Marcado "No".');
   }
   upsertAudit(a);
   rerenderInPlace();
