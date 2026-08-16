@@ -695,7 +695,8 @@ function renderHome(){
     html += `</div>`;
   }
   html += `<div style="padding:24px 18px; text-align:center;">
-    <span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer" onclick="resetAllData()">Borrar todos los datos de la app</span>
+    <span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer" onclick="reconectarDrive()">Reconectar Drive (buscar la planilla correcta)</span>
+    <br><span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer; margin-top:8px; display:inline-block" onclick="resetAllData()">Borrar todos los datos de la app</span>
   </div>`;
 
   document.getElementById('app').innerHTML = html;
