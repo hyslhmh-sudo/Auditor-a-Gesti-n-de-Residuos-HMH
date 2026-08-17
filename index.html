@@ -734,11 +734,11 @@ rgrl: {
 incendios: {
   code: 'AUD-INC-001',
   title: 'Protección contra Incendios',
-  subtitle: 'Capítulo 18, Decreto 351/79 — Artículos 160 a 187 (texto completo, no resumido)',
+  subtitle: 'Capítulo 18, Decreto 351/79 (Art. 160-187) + secciones específicas de riesgo hospitalario',
   icon: 'warning',
   color: '#B5651D',
   fotosPorItem: true,
-  intro: 'Auditoría detallada, artículo por artículo, del Capítulo 18 del Decreto 351/79. A diferencia del RGRL (que resume este capítulo en 11 preguntas), acá cada ítem corresponde a una obligación puntual del texto legal. Cada "No cumple" identifica una condición insegura a regularizar — al sincronizar, se puede volcar directamente como No Conformidad al sistema SG-SST.',
+  intro: 'Auditoría detallada, artículo por artículo, del Capítulo 18 del Decreto 351/79, adaptada a un establecimiento de salud. A diferencia del RGRL (que resume este capítulo en 11 preguntas), acá cada ítem corresponde a una obligación puntual del texto legal — más las secciones específicas de riesgo hospitalario (gases medicinales, evacuación asistida, quirófanos, áreas críticas) que el Decreto 351/79 no contempla por ser genérico para cualquier actividad, pero que sí son un riesgo real y propio de un hospital. Esas secciones están marcadas como "criterio profesional HySL" en vez de un artículo, para que quede claro qué parte tiene respaldo legal directo y qué parte es buena práctica. Cada "No cumple" identifica una condición insegura a regularizar — al sincronizar, se puede volcar directamente como No Conformidad al sistema SG-SST.',
   fields: [
     { key: 'fecha', label: 'Fecha', type: 'date' },
     { key: 'numero', label: 'N.º de auditoría', type: 'text', readonly: true },
@@ -757,26 +757,20 @@ incendios: {
     { title: 'Instalaciones eléctricas contra incendio', note: 'Art. 163 (remite al Anexo VI)', items: [
       '¿Las instalaciones eléctricas del establecimiento están protegidas contra incendio conforme al Anexo VI?',
     ]},
-    { title: 'Plantas y depósitos de combustibles (generales)', note: 'Art. 164', items: [
-      '¿Se evita el manejo, transporte y almacenamiento de materias inflamables en condiciones inseguras o en recipientes no diseñados para ese fin?',
-      '¿La cantidad de inflamables de 1.ª categoría almacenada fuera de un depósito habilitado no supera los 200 litros?',
-      '¿Se evita el almacenamiento o manipulación de líquidos inflamables en locales sobre o junto a sótanos/fosas sin ventilación adecuada?',
-      '¿Los depósitos comerciales de inflamables cumplen con la reglamentación aplicable?',
-      '¿Ningún depósito almacena más de 10.000 litros de inflamables de 1.ª categoría o su equivalente?',
-      '¿Se confirma que no existen depósitos de inflamables en subsuelos, ni construcciones edificadas sobre ellos?',
+    { title: 'Depósitos y manejo de inflamables (alcohol, solventes, combustible del grupo electrógeno)', note: 'Art. 164 a 168 — adaptado a la escala real de un hospital (no a un depósito industrial)', items: [
+      '¿Se evita el manejo, transporte y almacenamiento de inflamables (alcohol, solventes, reactivos) en condiciones inseguras o en recipientes no diseñados para ese fin?',
+      '¿La cantidad de alcohol u otros inflamables de 1.ª categoría fuera de un depósito habilitado no supera los 200 litros por sector?',
+      '¿El depósito de inflamables (farmacia, laboratorio, mantenimiento) tiene piso impermeable, estanterías antichispas y cubeta de contención?',
+      '¿Si la iluminación del depósito es artificial, la instalación es antiexplosiva?',
+      '¿El tanque de combustible del grupo electrógeno guarda las distancias mínimas de seguridad respecto de otros ambientes y está libre de materiales combustibles a su alrededor?',
+      '¿Se confirma que no hay depósitos de inflamables en subsuelos ni construcciones edificadas sobre ellos?',
     ]},
-    { title: 'Depósitos de inflamables — hasta 500 litros', note: 'Art. 165', items: [
-      '¿El depósito tiene piso impermeable y estanterías antichispas e incombustibles, formando cubeta (110% del volumen si el inflamable no es miscible en agua, 120% si es miscible)?',
-      '¿Si la iluminación es artificial, la instalación es antiexplosiva?',
-      '¿La ventilación es natural, mediante ventana con tejido arrestallama o conducto?',
-      '¿El depósito está equipado con matafuegos de la clase y cantidad apropiada?',
-    ]},
-    { title: 'Depósitos de inflamables — de 500 a 10.000 litros', note: 'Art. 166 y 167', items: [
-      '¿El depósito (más de 500 y hasta 1000 litros) guarda una separación mínima de 3 metros respecto de otros ambientes, la vía pública y linderos?',
-      '¿El depósito (más de 1000 litros) tiene dos accesos opuestos entre sí, alcanzables sin atravesar un frente de fuego, con puertas que abren hacia el exterior y cierre operable sin llave desde adentro?',
-      '¿El piso tiene pendiente hacia canaletas y rejillas que conduzcan un eventual derrame a un estanque de contención (o interceptor) de capacidad adecuada (al menos 50% mayor que la del depósito)?',
-      '¿La distancia de separación respecto a otros ambientes/vía pública/linderos aumenta proporcionalmente con la capacidad almacenada, y se duplica entre depósitos de inflamables?',
-      '¿La instalación de extinción del depósito es adecuada al riesgo?',
+    { title: 'Gases medicinales y atmósferas enriquecidas con oxígeno', note: 'Criterio profesional HySL — el Cap. 18 no regula gases medicinales, pero es uno de los riesgos de incendio más críticos y propios de un hospital (el oxígeno acelera la combustión)', items: [
+      '¿La central de gases medicinales (oxígeno, óxido nitroso) está señalizada, ventilada y alejada de fuentes de calor o ignición?',
+      '¿Los cilindros/tubos de gases medicinales se almacenan sujetos, protegidos de golpes y caídas, y separados de sustancias inflamables?',
+      '¿Se respeta la prohibición de fumar o usar artefactos con llama en sectores donde se administra, transporta o almacena oxígeno?',
+      '¿Los equipos eléctricos utilizados en zonas con atmósfera enriquecida de oxígeno (quirófano, UTI, oxigenoterapia) son aptos para ese entorno?',
+      '¿Existe un procedimiento definido para actuar ante una falla o incendio en la central de oxígeno?',
     ]},
     { title: 'Orden, limpieza y prevención de ignición', note: 'Art. 169', items: [
       '¿Se respeta la prohibición de fumar, encender fuego o portar encendedores/fósforos en zonas de explosivos, combustibles o inflamables?',
@@ -799,6 +793,17 @@ incendios: {
       '¿Ninguna puerta, vestíbulo, corredor, pasaje o escalera está obstruido o reducido en su ancho reglamentario?',
       '¿Las puertas que comunican con un medio de escape son de doble contacto, cierre automático, y tienen resistencia al fuego mínima F30?',
     ]},
+    { title: 'Evacuación asistida de pacientes no deambulantes', note: 'Criterio profesional HySL — práctica reconocida en hospitales: la evacuación total es a menudo impracticable para pacientes internados, por eso se prioriza la evacuación horizontal a un sector protegido contiguo', items: [
+      '¿Existen sectores de incendio pensados para evacuación horizontal (traslado a un sector contiguo protegido) para pacientes que no pueden desplazarse por sí mismos?',
+      '¿El personal de internación conoce el criterio de priorizar la evacuación horizontal antes que la evacuación total del edificio?',
+      '¿Hay camillas, sillas de ruedas u otros medios de traslado de emergencia disponibles y accesibles en cada sector de internación?',
+      '¿Los simulacros de evacuación incluyen el traslado simulado de pacientes no deambulantes, y no solo de personal?',
+    ]},
+    { title: 'Quirófanos y áreas críticas', note: 'Criterio profesional HySL — mismo motivo que gases medicinales: riesgo propio de estas áreas por gases anestésicos, oxígeno y dependencia de equipos eléctricos vitales', items: [
+      '¿El quirófano cuenta con piso antiestático y equipos eléctricos aptos para el entorno con gases anestésicos/oxígeno?',
+      '¿Existe un protocolo específico para actuar ante un incendio con un paciente en cirugía o en ventilación mecánica?',
+      '¿Los equipos críticos (respiradores, monitores) cuentan con alimentación de emergencia (UPS/grupo electrógeno) independiente de un eventual corte por incendio?',
+    ]},
     { title: 'Matafuegos — cantidad, clase y ubicación', note: 'Art. 176 a 180', items: [
       '¿La cantidad de matafuegos corresponde al área, importancia del riesgo, carga de fuego y clase de fuego probable del sector?',
       '¿Hay como mínimo un matafuego cada 200 m² de superficie a proteger?',
@@ -811,6 +816,12 @@ incendios: {
     { title: 'Sistemas fijos y dotación de extinción', note: 'Art. 181 y 182', items: [
       '¿Se incrementó la dotación de equipos manuales (motobombas, equipos semifijos, etc.) cuando la magnitud del riesgo lo justifica?',
       '¿Existe un sistema fijo contra incendios con agente extintor acorde a la clase de fuego del riesgo a proteger?',
+    ]},
+    { title: 'Áreas de riesgo específico (cocina, lavandería, laboratorio, archivo)', note: 'Criterio profesional HySL — sectores del hospital con carga de fuego o fuentes de ignición particulares', items: [
+      '¿La cocina cuenta con campana de extracción, y corte rápido de gas accesible ante una emergencia?',
+      '¿Los secarropas de la lavandería tienen limpieza periódica de filtros de pelusa (riesgo de sobrecalentamiento)?',
+      '¿El laboratorio almacena reactivos inflamables según su compatibilidad química, alejados de mecheros u otras fuentes de ignición?',
+      '¿El archivo de historias clínicas (alta carga de fuego por papel) cuenta con detección y/o protección acorde a esa carga de fuego?',
     ]},
     { title: 'Certificaciones y registro documental', note: 'Art. 183 a 186', items: [
       '¿Se cuenta con certificaciones de cumplimiento de normas, emitidas por entidades reconocidas por la autoridad competente, para los equipos e instalaciones?',
