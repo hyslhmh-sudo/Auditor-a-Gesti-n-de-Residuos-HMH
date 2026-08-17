@@ -916,6 +916,13 @@ function renderHome(){
     </div>
     ${icon('open_in_new', 'color:var(--grey)')}
   </div>
+  <div class="type-card" style="margin:10px 18px 0; display:flex; align-items:center; gap:10px;" onclick="regenerarTablero()">
+    ${icon('sync', 'color:'+'#B5651D'+';margin-bottom:0')}
+    <div style="flex:1">
+      <div class="t">Regenerar pestaña Tablero</div>
+      <div class="s">Borra y recrea la pestaña "Tablero" con las fórmulas más recientes (pide confirmación)</div>
+    </div>
+  </div>
   <div style="padding:24px 18px; text-align:center;">
     <span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer" onclick="reconectarDrive()">Reconectar Drive (buscar la planilla correcta)</span>
     <br><span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer; margin-top:8px; display:inline-block" onclick="resetAllData()">Borrar todos los datos de la app</span>
@@ -2480,6 +2487,33 @@ function removePhoto(auditId, idx){
 
 function openSheetDashboard(){
   window.open('https://docs.google.com/spreadsheets/d/'+CANONICAL_SHEET_ID+'/edit', '_blank');
+}
+
+// Borra la pestaña "Tablero" (si existe) y la recrea desde cero con el
+// layout/fórmulas actuales de la app. A diferencia de la primera creación
+// automática (que solo pasa una vez, para no pisar personalizaciones a
+// mano sin avisar), esto es una acción explícita que la usuaria dispara
+// a propósito -- por eso pide confirmación primero.
+async function regenerarTablero(){
+  const confirmado = confirm('Esto borra la pestaña "Tablero" actual del Sheet y la recrea con las fórmulas más recientes de la app.\n\nSi hiciste cambios a mano en esa pestaña, se van a perder.\n\n¿Continuar?');
+  if(!confirmado) return;
+  toast('Regenerando Tablero...');
+  try {
+    const cfg = await ensureDriveSetup();
+    const meta = await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'?fields=sheets.properties');
+    const tabActual = (meta.sheets||[]).find(s=>s.properties.title==='Tablero');
+    if(tabActual){
+      await gFetch('https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+':batchUpdate', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ requests: [{ deleteSheet: { sheetId: tabActual.properties.sheetId } }] }),
+      });
+    }
+    await ensureTableroTab(cfg.sheetId);
+    toast('Tablero regenerado ✓');
+  } catch(e){
+    console.error(e);
+    toast('No se pudo regenerar — '+(e && e.message ? e.message.slice(0,160) : 'error desconocido'));
+  }
 }
 
 render();
