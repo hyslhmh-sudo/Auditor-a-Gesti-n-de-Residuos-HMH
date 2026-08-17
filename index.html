@@ -2383,7 +2383,7 @@ async function ensureTableroTab(sheetId){
       ...sectionRows.map(r => ({
         repeatCell: {
           range: { sheetId: tabSheetId, startRowIndex: r, endRowIndex: r+1, startColumnIndex: 0, endColumnIndex: 2 },
-          cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: r===0 ? {red:0.051,green:0.192,blue:0.247} : {red:0.937,green:0.949,blue:0.957}, textColor: r===0 ? {red:1,green:1,blue:1} : undefined } },
+          cell: { userEnteredFormat: { textFormat: { bold: true, foregroundColor: r===0 ? {red:1,green:1,blue:1} : undefined }, backgroundColor: r===0 ? {red:0.051,green:0.192,blue:0.247} : {red:0.937,green:0.949,blue:0.957} } },
           fields: 'userEnteredFormat(textFormat,backgroundColor)',
         }
       })),
