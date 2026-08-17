@@ -470,6 +470,253 @@ doc: {
   firmas: ['Auditor/a (HySL)', 'Responsable de Gestión / Compras (referente contrato Impeesa)'],
 },
 
+rgrl: {
+  code: 'RGRL-001',
+  title: 'Relevamiento General de Riesgos Laborales',
+  subtitle: 'Anexo I Res. SRT 463/09 (mod. 529/09) — Decreto 351/79',
+  icon: 'fact_check',
+  color: '#A33A2E',
+  intro: 'Relevamiento de condiciones de seguridad e higiene del establecimiento, ítem por ítem, siguiendo el Anexo I del Decreto 351/79 (Res. SRT 463/09 y 529/09). Cada "No cumple" identifica una condición insegura a regularizar — al sincronizar, se puede volcar directamente como No Conformidad al sistema SG-SST. Se releva por sector/área, pudiendo completarse en varias visitas hasta cubrir todo el establecimiento.',
+  fields: [
+    { key: 'fecha', label: 'Fecha', type: 'date' },
+    { key: 'numero', label: 'N.º de relevamiento', type: 'text', readonly: true },
+    { key: 'servicio', label: 'Sector / área relevada', type: 'text', full: true },
+    { key: 'auditor', label: 'Responsable de HySL', type: 'text' },
+  ],
+  sections: [
+    { title: 'Servicio de higiene y seguridad en el trabajo', note: 'Art. 3 y 10, Dec. 1338/96', items: [
+      '¿Dispone del Servicio de Higiene y Seguridad?',
+      '¿Cumple con las horas profesionales según Decreto 1338/96?',
+      '¿Posee documentación actualizada sobre análisis de riesgos y medidas preventivas en los puestos de trabajo?',
+    ]},
+    { title: 'Servicio de medicina del trabajo', note: 'Art. 3 y 5, Dec. 1338/96 — Res. 43/97 y 54/98', items: [
+      '¿Dispone del Servicio de Medicina del Trabajo?',
+      '¿Posee documentación actualizada sobre educación sanitaria, socorro, vacunación y estudios de ausentismo por morbilidad?',
+      '¿Se realizan los exámenes periódicos?',
+    ]},
+    { title: 'Herramientas', note: 'Cap. 15 Art. 103 y 110, Dec. 351/79', items: [
+      '¿Las herramientas están en estado de conservación adecuado?',
+      '¿La empresa provee herramientas aptas y seguras?',
+      '¿Las herramientas cortopunzantes poseen fundas o vainas?',
+      '¿Existe un lugar destinado para la ubicación ordenada de las herramientas?',
+      '¿Las portátiles eléctricas poseen protecciones para evitar riesgos?',
+      '¿Las neumáticas e hidráulicas poseen válvulas de cierre automático al dejar de accionarlas?',
+    ]},
+    { title: 'Máquinas', note: 'Cap. 15 Art. 103-109, Cap. 14 Anexo VI, Dec. 351/79', items: [
+      '¿Tienen todas las máquinas y herramientas protecciones para evitar riesgos al trabajador?',
+      '¿Existen dispositivos de parada de emergencia?',
+      '¿Se han provisto sistemas de bloqueo de la máquina para operaciones de mantenimiento?',
+      '¿Tienen las máquinas eléctricas sistema de puesta a tierra?',
+      '¿Están identificadas conforme a normas IRAM todas las partes de máquinas y equipos que en accionamiento puedan causar daño?',
+    ]},
+    { title: 'Espacios de trabajo', note: 'Cap. 5 Art. 42, Cap. 12 Art. 81, Dec. 351/79', items: [
+      '¿Existe orden y limpieza en los puestos de trabajo?',
+      '¿Existen depósitos de residuos en los puestos de trabajo?',
+      '¿Tienen las salientes y partes móviles de máquinas/instalaciones señalización y protección?',
+    ]},
+    { title: 'Ergonomía', note: 'Anexo I Res. 295/03', items: [
+      '¿Se desarrolla un programa de ergonomía integrado para los distintos puestos de trabajo?',
+      '¿Se realizan controles de ingeniería a los puestos de trabajo?',
+      '¿Se realizan controles administrativos y seguimientos a los puestos de trabajo?',
+    ]},
+    { title: 'Protección contra incendios', note: 'Cap. 18 Art. 164-187, Dec. 351/79', items: [
+      '¿Existen medios o vías de escape adecuadas en caso de incendio?',
+      '¿Cuentan con estudio de carga de fuego?',
+      '¿La cantidad de matafuegos es acorde a la carga de fuego?',
+      '¿Se registra el control de recargas y/o reparación de matafuegos?',
+      '¿Se registra el control de prueba hidráulica de carros y/o matafuegos?',
+      '¿Existen sistemas de detección de incendios?',
+      '¿Cuentan con habilitación los carros/matafuegos y demás instalaciones para extinción?',
+      '¿El depósito de combustibles cumple con la legislación vigente?',
+      '¿Se acredita la realización periódica de simulacros de evacuación?',
+      '¿Se disponen de estanterías o elementos equivalentes de material no combustible o metálico?',
+      '¿Se separan en forma alternada los materiales combustibles de los no combustibles y de los que puedan reaccionar entre sí?',
+    ]},
+    { title: 'Almacenaje', note: 'Cap. 5 Art. 42-43, Cap. 18 Art. 169, Dec. 351/79', items: [
+      '¿Se almacenan los productos respetando la distancia mínima de 1 m entre la parte superior de las estibas y el techo?',
+      '¿Los sistemas de almacenaje permiten una adecuada circulación y son seguros?',
+      '¿En los almacenajes a granel, las estibas cuentan con elementos de contención?',
+    ]},
+    { title: 'Almacenaje de sustancias peligrosas', note: 'Cap. 17 Art. 145 y 148, Cap. 5 Art. 42, Cap. 18 Art. 165-167, Dec. 351/79', items: [
+      '¿Se encuentran separados los productos incompatibles?',
+      '¿Se identifican los productos riesgosos almacenados?',
+      '¿Se proveen elementos de protección adecuados al personal?',
+      '¿Existen duchas de emergencia y/o lavaojos en los sectores con productos peligrosos?',
+      '¿En atmósferas inflamables la instalación eléctrica es antiexplosiva?',
+      '¿Existe un sistema para control de derrames de productos peligrosos?',
+    ]},
+    { title: 'Sustancias peligrosas', note: 'Cap. 17 Art. 145-150, Dec. 351/79', items: [
+      '¿Su fabricación y/o manipuleo cumplimenta la legislación vigente?',
+      '¿Todas las sustancias que se utilizan poseen sus respectivas hojas de seguridad (HDS)?',
+      '¿Las instalaciones y equipos se encuentran protegidos contra el efecto corrosivo de las sustancias empleadas?',
+      '¿Se fabrican, depositan o manipulan sustancias explosivas conforme a lo reglamentado por Fabricaciones Militares?',
+      '¿Existen dispositivos de alarma acústicos y visuales donde se manipulen sustancias infectantes y/o contaminantes?',
+      '¿Se ha señalizado y resguardado la zona o los elementos afectados ante casos de derrame de sustancias corrosivas?',
+      '¿Se ha evitado la acumulación de desechos orgánicos en estado de putrefacción, e implementado la desinfección correspondiente?',
+      '¿Se confeccionó un plan de seguridad para casos de emergencia y se colocó en lugar visible?',
+    ]},
+    { title: 'Riesgo eléctrico', note: 'Cap. 14 Art. 95-102 y Anexo VI, Dec. 351/79', items: [
+      '¿Están todos los cableados eléctricos adecuadamente contenidos?',
+      '¿Los conectores eléctricos se encuentran en buen estado?',
+      '¿Las instalaciones y equipos eléctricos cumplen con la legislación?',
+      '¿Las tareas de mantenimiento son efectuadas por personal capacitado y autorizado por la empresa?',
+      '¿Se efectúa y registra el mantenimiento de las instalaciones según programas conforme a normas de seguridad?',
+      '¿Los proyectos de instalaciones y equipos eléctricos de más de 1000 voltios cumplimentan la legislación y están aprobados por el responsable de HyS?',
+      '¿Se adoptan medidas de seguridad en locales donde se manipulen sustancias corrosivas, inflamables, explosivas o de alto riesgo, y en locales húmedos?',
+      '¿Se han adoptado medidas para la protección contra riesgos de contactos directos e indirectos?',
+      '¿Se han adoptado medidas para eliminar la electricidad estática en las operaciones que pueda producirse?',
+      '¿Posee instalación para prevenir sobretensiones producidas por descargas atmosféricas (pararrayos)?',
+      '¿Poseen las instalaciones tomas a tierra independientes de la instalada para descargas atmosféricas?',
+      '¿Las puestas a tierra se verifican periódicamente mediante mediciones?',
+    ]},
+    { title: 'Aparatos sometidos a presión', note: 'Cap. 16 Art. 138-144, Dec. 351/79', items: [
+      '¿Se realizan los controles e inspecciones periódicas en calderas y todo otro aparato sometido a presión?',
+      '¿Se han fijado instrucciones detalladas con esquemas de la instalación y los procedimientos operativos?',
+      '¿Se protegen los hornos, calderas, etc., para evitar la acción del calor?',
+      '¿Están los cilindros con gases sometidos a presión adecuadamente almacenados?',
+      '¿Los restantes aparatos sometidos a presión cuentan con dispositivos de protección y seguridad?',
+      '¿Cuenta el operador con la capacitación y/o habilitación pertinente?',
+      '¿Están aislados y convenientemente ventilados los aparatos capaces de producir frío, con posibilidad de desprendimiento de contaminantes?',
+    ]},
+    { title: 'Equipos y elementos de protección personal (EPP)', note: 'Cap. 19 Art. 188-190, Dec. 351/79 — Art. 28 Dto. 170/96', items: [
+      '¿Se provee a todos los trabajadores de EPP adecuado, acorde a los riesgos a los que se hallan expuestos?',
+      '¿Existen señalizaciones visibles sobre la obligatoriedad del uso de EPP?',
+      '¿Se verifica la existencia de registros de entrega de los EPP?',
+      '¿Se realizó un estudio por puesto de trabajo o sector donde se detallen los EPP necesarios?',
+    ]},
+    { title: 'Iluminación y color', note: 'Cap. 12 Art. 71-84, Dec. 351/79', items: [
+      '¿Se cumple con los requisitos de iluminación establecidos en la legislación vigente?',
+      '¿Se ha instalado un sistema de iluminación de emergencia, acorde a los requerimientos de la legislación vigente?',
+      '¿Se registran las mediciones de iluminación en los puestos y/o lugares de trabajo?',
+      '¿Los niveles existentes de iluminación cumplen con la legislación vigente?',
+      '¿Existe marcación visible de pasillos, circulaciones de tránsito y lugares de cruce con cargas suspendidas u otros elementos de transporte?',
+      '¿Se encuentran señalizados los caminos de evacuación en caso de peligro, indicando salidas normales y de emergencia?',
+      '¿Se encuentran identificadas las cañerías?',
+    ]},
+    { title: 'Condiciones higrotérmicas', note: 'Cap. 8 Art. 60 y Anexo III, Res. 295/03, Dec. 351/79', items: [
+      '¿Se registran las mediciones higrotérmicas en los puestos y/o lugares de trabajo?',
+      '¿El personal sometido a estrés por frío está protegido adecuadamente?',
+      '¿Se adoptaron correcciones en los puestos de trabajo del personal sometido a estrés por frío?',
+      '¿El personal sometido a estrés térmico y tensión térmica está protegido adecuadamente?',
+      '¿Se adoptaron correcciones en los puestos de trabajo del personal sometido a estrés térmico?',
+    ]},
+    { title: 'Radiaciones ionizantes', note: 'Cap. 10 Art. 62, Dec. 351/79 — Anexo II Res. 295/03', items: [
+      '¿En caso de existir fuentes generadoras de radiaciones ionizantes (ej. Rayos X), los trabajadores y las fuentes cuentan con autorización del organismo competente?',
+      '¿Se encuentran habilitados los operadores y los equipos generadores de radiaciones ionizantes ante el organismo competente?',
+      '¿Se lleva el control y registro de las dosis individuales?',
+      '¿Los valores hallados se encuentran dentro de lo establecido en la normativa vigente?',
+    ]},
+    { title: 'Láseres', note: 'Anexo II Res. 295/03', items: [
+      '¿Se han aplicado las medidas de control acordes a la clase de riesgo?',
+      '¿Las medidas adoptadas cumplen con lo establecido en la normativa vigente?',
+    ]},
+    { title: 'Radiaciones no ionizantes', note: 'Cap. 9-10 Art. 63, Dec. 351/79 — Anexo II Res. 295/03', items: [
+      '¿En caso de existir fuentes generadoras de radiaciones no ionizantes (ej. soldadura), los trabajadores están protegidos?',
+      '¿Se cumple con la normativa vigente para campos magnéticos estáticos?',
+      '¿Se registran las mediciones de radiofrecuencia y/o microondas en los lugares de trabajo?',
+      '¿Se encuentran dentro de lo establecido en la normativa vigente?',
+      '¿En caso de existir radiación infrarroja, se registran las mediciones de la misma?',
+      '¿Los valores hallados de radiación infrarroja se encuentran dentro de lo establecido en la normativa vigente?',
+      '¿En caso de existir radiación ultravioleta, se registran las mediciones de la misma?',
+      '¿Los valores hallados de radiación ultravioleta se encuentran dentro de lo establecido en la normativa vigente?',
+    ]},
+    { title: 'Provisión de agua', note: 'Cap. 6 Art. 57-58, Dec. 351/79 — Res. MTSS 523/95', items: [
+      '¿Existe provisión de agua potable para el consumo e higiene de los trabajadores?',
+      '¿Se registran los análisis bacteriológico y físico-químico del agua de consumo humano con la frecuencia requerida?',
+      '¿Se ha evitado el consumo humano del agua para uso industrial?',
+    ]},
+    { title: 'Desagües industriales', note: 'Cap. 7 Art. 59, Dec. 351/79', items: [
+      '¿Se recogen y canalizan por conductos, impidiendo su libre escurrimiento?',
+      '¿Se ha evitado el contacto de líquidos que puedan reaccionar originando desprendimiento de gases tóxicos o contaminantes?',
+      '¿Son evacuados los efluentes a plantas de tratamiento?',
+      '¿Se limpia periódicamente la planta de tratamiento, con las precauciones necesarias para el personal que efectúa esas tareas?',
+    ]},
+    { title: 'Baños, vestuarios y comedores', note: 'Cap. 5 Art. 46-56, Dec. 351/79', items: [
+      '¿Existen baños aptos higiénicamente?',
+      '¿Existen vestuarios aptos higiénicamente, con armarios adecuados e individuales?',
+      '¿Existen comedores aptos higiénicamente?',
+      '¿La cocina reúne los requisitos establecidos?',
+      '¿Los establecimientos temporarios cumplen con las exigencias de la legislación vigente?',
+    ]},
+    { title: 'Aparatos para izar, montacargas y ascensores', note: 'Cap. 15 Art. 114-137, Cap. 21 Art. 208-210, Dec. 351/79', items: [
+      '¿Se encuentra identificada la carga máxima en dichos equipos?',
+      '¿Poseen parada de máximo nivel de sobrecarga en el sistema de fuerza motriz?',
+      '¿Se halla la alimentación eléctrica del equipo en buenas condiciones?',
+      '¿Tienen los ganchos de izar traba de seguridad?',
+      '¿Los elementos auxiliares de elevación se encuentran en buen estado (cadenas, perchas, eslingas, fajas, etc.)?',
+      '¿Se registra el mantenimiento preventivo de estos equipos?',
+      '¿Reciben los operadores instrucción respecto a la operación y uso correcto del equipo de izar?',
+      '¿Los ascensores y montacargas cumplen los requisitos y condiciones de seguridad en construcción, instalación y mantenimiento?',
+      '¿Los aparatos para izar, aparejos, puentes grúa y transportadores cumplen los requisitos y condiciones máximas de seguridad?',
+    ]},
+    { title: 'Capacitación', note: 'Cap. 21 Art. 208-213, Dec. 351/79 — Art. 10 Dec. 1338/96', items: [
+      '¿Se capacita a los trabajadores acerca de los riesgos específicos a los que se encuentran expuestos en su puesto de trabajo?',
+      '¿Existen programas de capacitación con planificación anual?',
+      '¿Se entrega por escrito al personal las medidas preventivas tendientes a evitar enfermedades profesionales y accidentes de trabajo?',
+    ]},
+    { title: 'Primeros auxilios', note: 'Art. 9 i) Ley 19587', items: [
+      '¿Existen botiquines de primeros auxilios acorde a los riesgos existentes?',
+    ]},
+    { title: 'Vehículos', note: 'Cap. 15 Art. 103 y 134-136, Cap. 21 Art. 208-209, Dec. 351/79', items: [
+      '¿Cuentan los vehículos con los elementos de seguridad?',
+      '¿Se ha evitado la utilización de vehículos con motor a explosión en lugares con peligro de incendio o explosión, o cuentan con dispositivos apropiados?',
+      '¿Disponen de asientos que neutralicen las vibraciones, con respaldo y apoyapiés?',
+      '¿Son adecuadas las cabinas de protección para las inclemencias del tiempo?',
+      '¿Son adecuadas las cabinas para proteger del riesgo de vuelco?',
+      '¿Están protegidas para los riesgos de desplazamiento de cargas?',
+      '¿Poseen los operadores capacitación respecto a los riesgos inherentes al vehículo que conducen?',
+      '¿Están los vehículos equipados con luces, frenos, dispositivo de aviso acústico-luminoso, espejos, cinturón de seguridad, bocina y matafuegos?',
+      '¿Se cumplen las condiciones que deben reunir los medios de transporte interno?',
+    ]},
+    { title: 'Contaminación ambiental', note: 'Cap. 9 Art. 61, Anexo IV Res. 295/03, Dec. 351/79', items: [
+      '¿Se registran las mediciones de contaminación ambiental en los puestos y/o lugares de trabajo?',
+      '¿Se adoptaron las correcciones en los puestos y/o lugares de trabajo?',
+    ]},
+    { title: 'Ruidos', note: 'Cap. 13 Art. 85-87, Anexo V Res. 295/03, Dec. 351/79', items: [
+      '¿Se registran las mediciones de nivel sonoro continuo equivalente en los puestos y/o lugares de trabajo?',
+      '¿Se adoptaron las correcciones necesarias en los puestos y/o lugares de trabajo?',
+    ]},
+    { title: 'Ultrasonidos e infrasonidos', note: 'Cap. 13 Art. 93, Anexo V Res. 295/03, Dec. 351/79', items: [
+      '¿Se registran las mediciones de ultrasonidos/infrasonidos en los puestos y/o lugares de trabajo?',
+      '¿Se adoptaron las correcciones necesarias en los puestos y/o lugares de trabajo?',
+    ]},
+    { title: 'Vibraciones', note: 'Cap. 13 Art. 94, Anexo V Res. 295/03, Dec. 351/79', items: [
+      '¿Se registran las mediciones de vibraciones en los puestos y/o lugares de trabajo?',
+      '¿Se adoptaron las correcciones necesarias en los puestos y/o lugares de trabajo?',
+    ]},
+    { title: 'Utilización de gases', note: 'Cap. 16 Art. 142, Cap. 17 Art. 153, Dec. 351/79', items: [
+      '¿Los recipientes con gases se almacenan adecuadamente?',
+      '¿Los cilindros de gases son transportados en carretillas adecuadas?',
+      '¿Los cilindros de gases almacenados cuentan con capuchón protector y tienen la válvula cerrada?',
+      '¿Los cilindros de oxígeno y acetileno cuentan con válvulas antirretroceso de llama?',
+    ]},
+    { title: 'Soldadura', note: 'Cap. 17 Art. 152-153 y 156-157, Dec. 351/79', items: [
+      '¿Existe captación localizada de humos de soldadura?',
+      '¿Se utilizan pantallas para la proyección de partículas y chispas?',
+      '¿Las mangueras, reguladores, manómetros, sopletes y válvulas antirretorno se encuentran en buen estado?',
+    ]},
+    { title: 'Escaleras', note: 'Anexo VII Punto 3, 3.11 y 3.12, Dec. 351/79', items: [
+      '¿Todas las escaleras cumplen con las condiciones de seguridad?',
+      '¿Todas las plataformas de trabajo y rampas cumplen con las condiciones de seguridad?',
+    ]},
+    { title: 'Mantenimiento preventivo de máquinas, equipos e instalaciones', note: 'Art. 9 b) y d) Ley 19587', items: [
+      '¿Posee programa de mantenimiento preventivo, en base a riesgos y situaciones similares, para máquinas e instalaciones?',
+      'Instalaciones eléctricas: ¿cumple el programa de mantenimiento preventivo?',
+      'Aparatos para izar: ¿cumple el programa de mantenimiento preventivo?',
+      'Cables de equipos para izar: ¿cumple el programa de mantenimiento preventivo?',
+      'Ascensores y montacargas: ¿cumple el programa de mantenimiento preventivo?',
+      'Calderas y recipientes a presión: ¿cumple el programa de mantenimiento preventivo?',
+      '¿Se cumplimenta efectivamente dicho programa de mantenimiento preventivo?',
+    ]},
+    { title: 'Otras resoluciones legales relacionadas', note: 'Res. SRT 81/19 (S.V.C.C.) y Res. SRT 743/03 (Accidentes Mayores)', items: [
+      '¿El establecimiento se encuentra comprendido dentro de la Resolución 81/19, Sistema de Vigilancia y Control de Sustancias y Agentes Cancerígenos (S.V.C.C.)?',
+      '¿El establecimiento se encuentra comprendido dentro de la Resolución 743/03, Registro de Accidentes Mayores?',
+    ]},
+  ],
+  personnel: false,
+  firmas: ['Responsable de Higiene y Seguridad (HySL)', 'Responsable del sector/área relevada'],
+},
+
 };
 
 const REFERENCIAS = {
@@ -533,7 +780,7 @@ function nextNumero(type){
   return year + '-' + String(counters[key]).padStart(3, '0');
 }
 
-let state = { view:'home', auditId:null, informeId:null, tableroData:null, tableroError:null };
+let state = { view:'home', modulo:null, auditId:null, informeId:null, tableroData:null, tableroError:null };
 
 // ---------- Toast ----------
 function toast(msg){
@@ -589,41 +836,57 @@ function computeStats(audit){
 }
 
 // ============ RENDER: HOME ============
-function renderHome(){
-  const audits = loadConfirmedAudits().sort((a,b)=>b.updatedAt-a.updatedAt);
-  const drafts = loadDraftAudits().sort((a,b)=>b.updatedAt-a.updatedAt);
-  const informes = loadInformes().sort((a,b)=>b.updatedAt-a.updatedAt);
+// ============ MÓDULOS: agrupan los tipos de auditoría/relevamiento ============
+const MODULOS = {
+  residuos: {
+    titulo: 'Residuos Hospitalarios', icon: 'delete', color: '#0D313F',
+    desc: 'Generadores, Operarios de Limpieza, Transporte y Documentación.',
+    tipos: ['gen','opl','trans','doc'], informe: true,
+  },
+  rgrl: {
+    titulo: 'Relevamiento General de Riesgos', icon: 'fact_check', color: '#A33A2E',
+    desc: 'Condiciones de seguridad del establecimiento — Anexo I, Decreto 351/79.',
+    tipos: ['rgrl'], informe: false,
+  },
+  rar: {
+    titulo: 'RAR — Agentes de Riesgo', icon: 'groups', color: '#7A5C9E',
+    desc: 'Exposición del personal por puesto, para determinar exámenes médicos periódicos.',
+    tipos: [], informe: false, proximamente: true,
+  },
+};
 
+function goModulo(nombre){ state.view='modulo'; state.modulo=nombre; render(); }
+
+function renderHome(){
+  const audits = loadConfirmedAudits();
   let html = `
   <div class="logoband"><img src="data:image/png;base64,${LOGO_B64}" alt="Hospital María Humphreys"></div>
   <div class="navband">
     <div class="s">Servicio de Higiene y Seguridad Laboral</div>
     <div class="s2">Lic. Belén Pellegrini — MP LCOHSECH0383</div>
     <h1>Sistema de Gestión de Auditorías</h1>
-    <p>Residuos Hospitalarios — Hospital María Humphreys (HMH)</p>
+    <p>Auditorías e Inspecciones — Hospital María Humphreys (HMH)</p>
   </div>
   <div class="tealstrip"></div>
-  <div class="section-label" style="margin-top:22px">Nueva auditoría</div>
-  <div class="type-grid">
-    ${['gen','opl','trans','doc'].map(t=>{
-      const d = FORM_DEFS[t];
-      return `<div class="type-card" onclick="startNewAudit('${t}')">
-        ${icon(d.icon, 'color:'+d.color)}
-        <div class="t">${d.title}</div>
-        <div class="s">${d.code}</div>
+  <div class="section-label" style="margin-top:22px">Módulos</div>
+  <div class="audit-list">
+    ${Object.entries(MODULOS).map(([key,m])=>{
+      const n = audits.filter(a=>m.tipos.includes(a.type)).length;
+      return `<div class="type-card" style="display:flex; align-items:center; gap:12px; ${m.proximamente?'opacity:.62':''}" onclick="${m.proximamente?'toast(\'Próximamente\')':`goModulo('${key}')`}">
+        <div class="ic" style="background:${m.color}; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">${icon(m.icon,'color:#fff')}</div>
+        <div style="flex:1">
+          <div class="t">${m.titulo}${m.proximamente?' <span style=\'font-weight:600;color:var(--grey);font-size:10.5px\'>(próximamente)</span>':''}</div>
+          <div class="s">${m.desc}</div>
+        </div>
+        ${m.proximamente?'':`<div style="text-align:right; flex-shrink:0;"><div style="font-weight:800;font-size:15px;color:${m.color}">${n}</div><div style="font-size:10px;color:var(--grey)">guardadas</div></div>`}
       </div>`;
     }).join('')}
-    <div class="type-card" onclick="goInformeNew()">
-      ${icon('fact_check', 'color:#C9971F')}
-      <div class="t">Informe Consolidado</div>
-      <div class="s">AUD-RES-002</div>
-    </div>
   </div>
-  <div class="type-card" style="margin:12px 18px 0; display:flex; align-items:center; gap:10px;" onclick="goTablero()">
+  <div class="type-card" style="margin:16px 18px 0; display:flex; align-items:center; gap:10px;" onclick="goTablero()">
     ${icon('done_all', 'color:'+'#0D313F'+';margin-bottom:0')}
     <div style="flex:1">
       <div class="t">Indicadores</div>
-      <div class="s">Resumen de cumplimiento, hallazgos y personal — de todos tus dispositivos</div>
+      <div class="s">Resumen de cumplimiento, hallazgos y personal — de todos los módulos y dispositivos</div>
     </div>
     ${icon('open_in_new', 'color:var(--grey)')}
   </div>
@@ -634,6 +897,44 @@ function renderHome(){
       <div class="s">Se abre la planilla con todo lo sincronizado</div>
     </div>
     ${icon('open_in_new', 'color:var(--grey)')}
+  </div>
+  <div style="padding:24px 18px; text-align:center;">
+    <span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer" onclick="reconectarDrive()">Reconectar Drive (buscar la planilla correcta)</span>
+    <br><span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer; margin-top:8px; display:inline-block" onclick="resetAllData()">Borrar todos los datos de la app</span>
+  </div>`;
+  document.getElementById('app').innerHTML = html;
+}
+
+function renderModulo(){
+  const m = MODULOS[state.modulo];
+  const audits = loadConfirmedAudits().filter(a=>m.tipos.includes(a.type)).sort((a,b)=>b.updatedAt-a.updatedAt);
+  const drafts = loadDraftAudits().filter(a=>m.tipos.includes(a.type)).sort((a,b)=>b.updatedAt-a.updatedAt);
+  const informes = m.informe ? loadInformes().sort((a,b)=>b.updatedAt-a.updatedAt) : [];
+
+  let html = `<div class="topbar"><span class="msi" onclick="goHome()">${ICON_MAP.arrow_back}</span>
+    <div><h1>${m.titulo}</h1><div class="sub">${m.desc}</div></div></div>`;
+
+  if(m.proximamente){
+    html += `<div class="empty-state" style="padding:60px 24px;">Este módulo todavía no está armado.<br>Volvé más adelante.</div>`;
+    document.getElementById('app').innerHTML = html;
+    return;
+  }
+
+  html += `<div class="section-label" style="margin-top:18px">Nueva auditoría</div>
+  <div class="type-grid">
+    ${m.tipos.map(t=>{
+      const d = FORM_DEFS[t];
+      return `<div class="type-card" onclick="startNewAudit('${t}')">
+        ${icon(d.icon, 'color:'+d.color)}
+        <div class="t">${d.title}</div>
+        <div class="s">${d.code}</div>
+      </div>`;
+    }).join('')}
+    ${m.informe ? `<div class="type-card" onclick="goInformeNew()">
+      ${icon('fact_check', 'color:#C9971F')}
+      <div class="t">Informe Consolidado</div>
+      <div class="s">AUD-RES-002</div>
+    </div>` : ''}
   </div>`;
 
   if(drafts.length>0){
@@ -658,9 +959,8 @@ function renderHome(){
 
   html += `<div class="section-label">Auditorías guardadas (${audits.length})</div>
   <div class="audit-list">`;
-
   if(audits.length===0){
-    html += `<div class="empty-state">Todavía no guardaste ninguna auditoría.<br>Tocá una tarjeta de arriba para empezar.</div>`;
+    html += `<div class="empty-state">Todavía no guardaste ninguna auditoría en este módulo.<br>Tocá una tarjeta de arriba para empezar.</div>`;
   } else {
     audits.forEach(a=>{
       const def = FORM_DEFS[a.type];
@@ -694,10 +994,6 @@ function renderHome(){
     });
     html += `</div>`;
   }
-  html += `<div style="padding:24px 18px; text-align:center;">
-    <span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer" onclick="reconectarDrive()">Reconectar Drive (buscar la planilla correcta)</span>
-    <br><span style="font-size:11px; color:var(--grey); text-decoration:underline; cursor:pointer; margin-top:8px; display:inline-block" onclick="resetAllData()">Borrar todos los datos de la app</span>
-  </div>`;
 
   document.getElementById('app').innerHTML = html;
 }
@@ -1245,7 +1541,7 @@ function collectFieldInputs(){
   upsertAudit(a);
 }
 
-function goHome(){ collectFieldInputs(); state.view='home'; state.auditId=null; render(); }
+function goHome(){ collectFieldInputs(); state.view='home'; state.modulo=null; state.auditId=null; render(); }
 
 function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
@@ -1608,6 +1904,7 @@ function doPrintInforme(id){
 function render(opts){
   opts = opts || {};
   if(state.view==='home') renderHome();
+  else if(state.view==='modulo') renderModulo();
   else if(state.view==='form') renderForm();
   else if(state.view==='informe-new') renderInformeNew();
   else if(state.view==='informe') renderInforme();
@@ -1796,6 +2093,7 @@ function entidadFor(a, def){
   if(a.type==='gen') return 'G';
   if(a.type==='trans') return 'T';
   if(a.type==='doc') return 'DOC';
+  if(a.type==='rgrl') return 'RGRL';
   return a.tipoPersonal==='E' ? 'OPL-E' : 'OPL-P';
 }
 
