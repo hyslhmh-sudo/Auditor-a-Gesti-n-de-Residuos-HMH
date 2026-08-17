@@ -2405,7 +2405,7 @@ async function ensureTableroTab(sheetId){
           fields: 'userEnteredFormat(textFormat,backgroundColor)',
         }
       },
-      { updateSheetProperties: { properties: { sheetId: tabSheetId, gridProperties: { frozenRows: 0 } }, fields: 'gridProperties.frozenRows' } },
+      { updateSheetProperties: { properties: { sheetId: tabSheetId, gridProperties: { frozenRowCount: 0 } }, fields: 'gridProperties.frozenRowCount' } },
     ] }),
   });
 }
